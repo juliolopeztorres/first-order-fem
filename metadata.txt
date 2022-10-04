@@ -1,0 +1,19 @@
+; Metadata template for FreeCAD addons obtained from:
+; https://gist.github.com/luzpaz/5e12362f0771eec9e6e82ef0e4d1ba56
+
+[general]
+name=FirstOrderFemPyCode
+FreeCADMinimumVersion=0.19.24291
+description=UI Layer to perform simple 2D first order Finite Elements Methods simulations
+about=User interface layer to help users to define simple scenarios to solve Laplace's equation using
+      Finite Elements Methods in first order aproximation
+version=0.0.1
+; tracker=https://github.com/juliolopeztorres/first-order-fem/issues
+; repository=https://github.com/juliolopeztorres/first-order-fem
+; license=LGPL
+icon="assets/icons/logo.svg"
+
+[dependencies]
+workbenches=FemWorkbench,PlotWorkbench
+pylibs=matplotlib,python-decouple,ptvsd
+optionalpylibs=python-minifier,PyQt5

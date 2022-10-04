@@ -1,0 +1,9 @@
+__pycache__
+*.pyc
+.env
+lib_modules
+mtest2.py
+.mypy_cache
+.vscode
+FirstOrderFemPyCodeTest/SimulationTestsOutput/*
+!FirstOrderFemPyCodeTest/SimulationTestsOutput/.gitkeep

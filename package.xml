@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1">
+  <name>First Order FEM Python Workbench</name>
+  <description>UI Layer to perform simple 2D first order Finite Elements Method simulations</description>
+  <version>0.0.1</version>
+  <maintainer email="juliolopeztorres@gmail.com">Julio López Torres</maintainer>
+  <!-- <license file="LICENSE">LGPL-2</license> -->
+  <url type="repository" branch="master">https://github.com/juliolopeztorres/first-order-fem</url>
+  <url type="documentation">README.md</url>
+  <freecadmin>0.19.0</freecadmin>
+  <content>
+    <workbench>
+      <classname>FirstOrderFemPy</classname>
+      <subdirectory>./</subdirectory>
+      <icon>assets/icons/logo.svg</icon>
+    </workbench>
+  </content>
+</package>
