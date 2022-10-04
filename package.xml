@@ -5,8 +5,8 @@
   <version>0.0.1</version>
   <maintainer email="juliolopeztorres@gmail.com">Julio López Torres</maintainer>
   <!-- <license file="LICENSE">LGPL-2</license> -->
-  <url type="repository" branch="master">TODO</url>
-  <url type="documentation">TODO.md</url>
+  <url type="repository" branch="master">https://github.com/juliolopeztorres/first-order-fem</url>
+  <url type="documentation">README.md</url>
   <freecadmin>0.19.0</freecadmin>
   <content>
     <workbench>

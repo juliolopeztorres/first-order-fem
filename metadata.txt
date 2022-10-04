@@ -8,8 +8,8 @@ description=UI Layer to perform simple 2D first order Finite Elements Methods si
 about=User interface layer to help users to define simple scenarios to solve Laplace's equation using
       Finite Elements Methods in first order aproximation
 version=0.0.1
-; tracker=https://url-forum-to-track
-; repository=TODO
+; tracker=https://github.com/juliolopeztorres/first-order-fem/issues
+; repository=https://github.com/juliolopeztorres/first-order-fem
 ; license=LGPL
 icon="assets/icons/logo.svg"
 
