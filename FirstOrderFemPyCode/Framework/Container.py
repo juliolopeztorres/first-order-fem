@@ -14,6 +14,7 @@ from typing import Any, Callable, Dict, List, Optional
 # Services and use cases
 from FirstOrderFemPyCode.Framework.Service.UiLoaderService import UiLoaderService
 from FirstOrderFemPyCode.Framework.Service.UiLoaderServiceInterface import UiLoaderServiceInterface
+from FirstOrderFemPyCode.Data.ExtractSimulationResultsRepository import ExtractSimulationResultsRepository
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
 from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationUseCase import RunSimulationUseCase
 
@@ -24,7 +25,7 @@ from FirstOrderFemPyCode.Framework.View.TaskPanelSimulationContainerPropertiesVi
 from FirstOrderFemPyCode.Framework.View.ViewInterface import ViewInterface
 
 # Initialization of services and use cases
-extractSimulationResultsUseCase = ExtractSimulationResultsUseCase()
+extractSimulationResultsUseCase = ExtractSimulationResultsUseCase(ExtractSimulationResultsRepository())
 
 @unique
 class Service(Enum):

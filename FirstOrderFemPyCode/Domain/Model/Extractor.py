@@ -18,7 +18,7 @@ class Extractor:
         ELEMENT_CENTER = auto()
         VTK = auto()
    
-    __mesh: Mesh # FreeCAD Mesh Object
+    __mesh: Mesh
     __elements: Any # List of Mesh.Facets
     
     __path: str
