@@ -14,6 +14,7 @@ from typing import Any, Callable, Dict, List, Optional
 # Services and use cases
 from FirstOrderFemPyCode.Framework.Service.UiLoaderService import UiLoaderService
 from FirstOrderFemPyCode.Framework.Service.UiLoaderServiceInterface import UiLoaderServiceInterface
+from FirstOrderFemPyCode.Data.DataRepository import DataRepository
 from FirstOrderFemPyCode.Data.ExtractSimulationResultsRepository import ExtractSimulationResultsRepository
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
 from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationUseCase import RunSimulationUseCase
@@ -25,19 +26,22 @@ from FirstOrderFemPyCode.Framework.View.TaskPanelSimulationContainerPropertiesVi
 from FirstOrderFemPyCode.Framework.View.ViewInterface import ViewInterface
 
 # Initialization of services and use cases
+dataRepository = DataRepository()
 extractSimulationResultsUseCase = ExtractSimulationResultsUseCase(ExtractSimulationResultsRepository())
 
 @unique
 class Service(Enum):
     UI_LOADER_SERVICE = auto()
+    DATA_REPOSITORY = auto()
     RUN_SIMULATION_USE_CASE = auto()
     EXTRACT_SIMULATION_RESULTS_USE_CASE = auto()
 
 
 dictionaryServices = {
     Service.UI_LOADER_SERVICE: UiLoaderService(),
+    Service.DATA_REPOSITORY: dataRepository,
     Service.EXTRACT_SIMULATION_RESULTS_USE_CASE: extractSimulationResultsUseCase,
-    Service.RUN_SIMULATION_USE_CASE: RunSimulationUseCase(extractSimulationResultsUseCase),
+    Service.RUN_SIMULATION_USE_CASE: RunSimulationUseCase(dataRepository, extractSimulationResultsUseCase),
 }
 
 

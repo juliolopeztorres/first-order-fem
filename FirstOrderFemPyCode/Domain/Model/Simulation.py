@@ -1,10 +1,9 @@
-import json
+# import json
 from typing import Any, Dict, List, Optional
 from FirstOrderFemPyCode.Domain.Model.Mesh import Mesh
 
 import numpy as np
 from FirstOrderFemPyCode.Domain.Model import EPSILON_0, MAP_INDICES
-import FirstOrderFemPyCode.Framework.Util as Util
 
 class Simulation:
     __mesh: Mesh
@@ -15,18 +14,15 @@ class Simulation:
     __nodesNumber: int
     __freeNodesNumber: int
 
-    __path: str
-
     # To be determined after `run` method
     solution: Any = None
     energy: Optional[float] = None
     nodeVoltages: Optional[Dict[int, float]] = None
 
-    def __init__(self: 'Simulation', mesh: Mesh, prescribedNodes: Dict[int, float], path: str) -> None:
+    def __init__(self: 'Simulation', mesh: Mesh, prescribedNodes: Dict[int, float]) -> None:
         self.__mesh = mesh
         self.__elements = np.array(self.__mesh.elements)
         self.__prescribedNodes = prescribedNodes
-        self.__path = path
 
         self.__initOrderedNodes()
 
@@ -154,19 +150,6 @@ class Simulation:
                 np.matmul(C_join_matrix[self.__freeNodesNumber:, self.__freeNodesNumber:], prescribedNodesVector)
             ))
 
-    def writeSolutionToFile(self: 'Simulation') -> None:
-        self.nodeVoltages = {}
-        for i, node in enumerate(self.__nodes[0:self.__freeNodesNumber]):
-            self.nodeVoltages[node.Index + 1] = self.solution[i]
-
-        for prescribedNodeIndex, voltaje in self.__prescribedNodes.items():
-            self.nodeVoltages[prescribedNodeIndex] = voltaje
-
-        with open(Util.joinPaths(self.__path, 'solution.json'), 'w') as outfile:
-            json.dump(self.nodeVoltages, outfile)
-
-        outfile.close()
-
     def run(self: 'Simulation') -> None:
         self.__constructAndSolveLinearSystem(
             self.__getJointedMatrix(
@@ -174,5 +157,11 @@ class Simulation:
                 self.__createNodeToElementMap()
             )
         )
+        
+        # Construct the solved node voltages dictionary
+        self.nodeVoltages = {}
+        for i, node in enumerate(self.__nodes[0:self.__freeNodesNumber]):
+            self.nodeVoltages[node.Index + 1] = self.solution[i]
 
-        self.writeSolutionToFile()
+        for prescribedNodeIndex, voltaje in self.__prescribedNodes.items():
+            self.nodeVoltages[prescribedNodeIndex] = voltaje

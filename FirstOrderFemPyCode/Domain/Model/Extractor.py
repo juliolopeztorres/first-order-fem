@@ -19,7 +19,7 @@ class Extractor:
         VTK = auto()
    
     __mesh: Mesh
-    __elements: Any # List of Mesh.Facets
+    __elements: np.ndarray # List of Mesh.Facets
     
     __path: str
     
@@ -30,7 +30,7 @@ class Extractor:
         self.__path = path
         
         self.__mesh = mesh
-        self.__elements = mesh.elements
+        self.__elements = np.array(mesh.elements)
         
         self.__nodeVoltages = nodeVoltages if nodeVoltages else self.__getNodeVoltages()
 
