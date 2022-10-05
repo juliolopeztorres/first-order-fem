@@ -31,4 +31,3 @@ class DataRepository(RunSimulationRepositoryInterface):
 
     def writeNodeVoltages(self: 'DataRepository', path: str, outputNameWithExtension: str, voltages: Dict[int, float]) -> None:
         self._writeJsonContent(path, outputNameWithExtension, voltages)
-

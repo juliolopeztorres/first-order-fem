@@ -4,7 +4,6 @@ from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulatio
 from FirstOrderFemPyCode.Domain.Model.ExportVtk import ExportVtk
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 from FirstOrderFemPyCode.Data.ExtractorService import ExtractorService
-from FirstOrderFemPyCode.Domain.Model.Plot import Plot
 
 class ExtractSimulationResultsRepository(DataRepository, ExtractSimulationResultsRepositoryInterface):
     __simulationDescription: SimulationDescription

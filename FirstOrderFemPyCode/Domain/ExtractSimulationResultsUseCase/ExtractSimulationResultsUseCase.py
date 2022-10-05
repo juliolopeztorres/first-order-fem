@@ -23,7 +23,7 @@ class ExtractSimulationResultsUseCase:
         self.__repository.saveInfoToFile(info)
         
         if simulationDescription.exportOptions.renderOption == RenderOption.MATPLOTLIB:
-            Plot(simulationDescription.path).run()
+            Plot().run(info)
             
         chargeInfo = self.__repository.extractChargeInfo()
         
