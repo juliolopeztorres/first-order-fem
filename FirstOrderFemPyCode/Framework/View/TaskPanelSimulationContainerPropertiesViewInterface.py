@@ -8,6 +8,18 @@ class TaskPanelSimulationContainerPropertiesViewInterface(ViewInterface):
     def getExportOptionsView(self) -> Any:
         raise NotImplementedError
     
+    @abc.abstractmethod
+    def resetText(self) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def setText(self, text: str) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def appendText(self, text: str) -> None:
+        raise NotImplementedError
+
     class Callback(ViewInterface.CallbackInterface):
         @abc.abstractmethod
         def onBtnRunScenarioClicked(self) -> Any:

@@ -169,6 +169,14 @@
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Command.py"/>
         <source>TOOLTIP</source>
     </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
+        <source>CHARGE_ON_FRONTIER_OUTPUT</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
+        <source>ENERGY_OUTPUT</source>
+    </message>
 </context>
 <context>
     <name>FirstOrderFemPyInit</name>

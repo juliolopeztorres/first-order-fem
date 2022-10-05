@@ -203,6 +203,16 @@
         <source>TOOLTIP</source>
         <translation>Agrega un nuevo objeto simulación al documento activo</translation>
     </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
+        <source>CHARGE_ON_FRONTIER_OUTPUT</source>
+        <translation>Carga total en frontera</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
+        <source>ENERGY_OUTPUT</source>
+        <translation>Energía</translation>
+    </message>
 </context>
 <context>
     <name>FirstOrderFemPyInit</name>

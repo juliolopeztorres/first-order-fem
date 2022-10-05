@@ -1,4 +1,6 @@
 from typing import Any, List, Optional
+from PySide import QtGui
+
 from FirstOrderFemPyCode.Framework.View.TaskPanelExportOptionsPropertiesViewInterface import TaskPanelExportOptionsPropertiesViewInterface
 from FirstOrderFemPyCode.Framework.View.TaskPanelSimulationContainerPropertiesViewInterface import TaskPanelSimulationContainerPropertiesViewInterface
 from FirstOrderFemPyCode.Framework.Service.UiLoaderServiceInterface import UiLoaderServiceInterface
@@ -39,6 +41,11 @@ class TaskPanelSimulationContainerPropertiesView(TaskPanelSimulationContainerPro
         self.form.btnRunScenario.clicked.connect(self.__onBtnRunScenarioClicked)
         self.form.btnRunExport.clicked.connect(self.__onBtnRunExportClicked)
 
+        self.form.textReport.verticalScrollBar().rangeChanged.connect(self.__resizeScroll)
+
+    def __resizeScroll(self, min, maxi):
+        self.form.textReport.verticalScrollBar().setValue(maxi)
+
     def __onBtnRunScenarioClicked(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
         self.__callback.onBtnRunScenarioClicked()
         
@@ -56,3 +63,13 @@ class TaskPanelSimulationContainerPropertiesView(TaskPanelSimulationContainerPro
 
     def getExportOptionsView(self) -> Any:
         return self.__exportOptionsView
+
+    def setText(self, text: str) -> None:
+        self.form.textReport.setPlainText(text)
+        self.form.textReport.moveCursor(QtGui.QTextCursor.End)
+
+    def appendText(self, text: str) -> None:
+        self.form.textReport.insertPlainText(text)
+
+    def resetText(self) -> None:
+        self.form.textReport.clear()
