@@ -1,6 +1,5 @@
 from enum import Enum, auto, unique
 import json
-import math
 from typing import Any, Dict, List, Optional
 from FirstOrderFemPyCode.Domain.Model.AbstractFemModel import AbstractFemModel
 
@@ -29,7 +28,7 @@ class Extractor(AbstractFemModel):
         
         self.nodeVoltages = nodeVoltages if nodeVoltages else self.__getNodeVoltages()
 
-        self.__linearCoefficients = self.__getCoefficientDictForElements()
+        self.__linearCoefficients = self._getCoefficientDictForElements()
 
     # TODO: This should be injected and non-optional
     def __getNodeVoltages(self: 'Extractor') -> Dict[int, float]:
@@ -61,46 +60,13 @@ class Extractor(AbstractFemModel):
 
         return not (has_neg and has_pos)
 
-    def __getK(self: 'Extractor', i: int, element: Any) -> float:
-        points = element.Points
-
-        initMapIndex = MAP_INDICES[i]
-
-        return points[initMapIndex - 1][0] * points[MAP_INDICES[initMapIndex] - 1][1] - \
-            points[MAP_INDICES[initMapIndex] - 1][0] * points[initMapIndex - 1][1]
-
-    def __getVoltagesForElement(self: 'Extractor', element: Any) -> List[float]:
-        return [self.nodeVoltages[pointIndex + 1] for pointIndex in element.PointIndices]
-
-    def __getCoefficientsForElement(self: 'Extractor', element: Any, voltages: List[float]) -> List[float]:
-        # area = element.Area
-        # Elements area does not get an extra sign from the determinant
-        area = (1/2) * sum([self.__getK(i + 1, element) for i in range(3)])
-        
-        prefactor = 1/(2*area)
-        
-        a = prefactor * sum([self.__getK(i + 1, element) * voltages[i] for i in range(3)])
-        # Units for `b` and `c` are V/mm
-        b = prefactor * sum([self._getY(i + 1, element) * voltages[i] for i in range(3)])
-        c = -prefactor * sum([self._getX(i + 1, element) * voltages[i] for i in range(3)])
-        
-        return [a, b, c]
-
-    def __getCoefficientDictForElements(self: 'Extractor') -> Dict[int, List[float]]:
-        result = {}
-        
-        for element in self._elements:
-            result[element.Index + 1] = self.__getCoefficientsForElement(element, self.__getVoltagesForElement(element))
-        
-        return result
-
-    def __getVoltage(self: 'Extractor', point: List[float], linearCoefficients: List[float]):
-        return linearCoefficients[0] + linearCoefficients[1] * point[0] + linearCoefficients[2] * point[1]
-
-    def __getElectricFieldMagnitude(self: 'Extractor', linearCoefficients: List[float]) -> float:
-        return math.sqrt(
-            math.pow(linearCoefficients[1], 2) + math.pow(linearCoefficients[2], 2)
-        )
+    def __getPointVoltageAndEField(self: 'Extractor', x: float, y: float, elementId: int) -> Dict[str, Any]:
+        elementCoefficients = self.__linearCoefficients[elementId]
+        return {
+                'point': [x, y], 
+                'voltage': self._getVoltage([x, y], elementCoefficients),
+                'E_mag': self._getElectricFieldMagnitude(elementCoefficients) # V/mm
+            }
 
     def __getCartesianGridValues(self: 'Extractor', pointsPerDirection: int = 25) -> List[Any]:
         # Loop over x-y map, find triangle belonging, get its index and estimate voltage
@@ -128,14 +94,7 @@ class Extractor(AbstractFemModel):
                 #     raise Exception(f"Unexpected number of candidates for point [{x}, {y}]")
                 
                 # Get Electric Field
-                elementCoefficients = self.__linearCoefficients[elementCandicate[0].Index + 1]
-                results.append(
-                    {
-                        'point': [x, y], 
-                        'voltage': self.__getVoltage([x, y], elementCoefficients),
-                        'E_mag': self.__getElectricFieldMagnitude(elementCoefficients) # V/mm
-                    }
-                )
+                results.append(self.__getPointVoltageAndEField(x, y, elementCandicate[0].Index + 1))
                 
         return results
 
@@ -145,14 +104,7 @@ class Extractor(AbstractFemModel):
             x, y = element.InCircle[0][0:2]
 
             # Get Electric Field
-            elementCoefficients = self.__linearCoefficients[element.Index + 1]
-            results.append(
-                {
-                    'point': [x, y],
-                    'voltage': self.__getVoltage([x, y], elementCoefficients), # V/mm
-                    'E_mag': self.__getElectricFieldMagnitude(elementCoefficients)
-                }
-            )
+            results.append(self.__getPointVoltageAndEField(x, y, element.Index + 1))
             
         return results
 
