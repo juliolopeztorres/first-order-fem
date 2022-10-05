@@ -27,4 +27,8 @@ class ExtractSimulationResultsUseCase:
             
         chargeInfo = self.__repository.extractChargeInfo()
         
+        for frontierElementsGroupName, frontierElectricFieldVector in chargeInfo.items():
+            totalCharge = sum([values['charge'] for values in frontierElectricFieldVector])
+            print(f'Total charge on frontier {frontierElementsGroupName}: {totalCharge}C\n')
+        
         self.__repository.saveChargeInfoToFile(chargeInfo)
