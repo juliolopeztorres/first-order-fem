@@ -34,3 +34,7 @@ class ExtractSimulationResultsRepositoryInterface:
     @abc.abstractmethod
     def saveChargeInfoToFile(self: 'ExtractSimulationResultsRepositoryInterface', chargeInfo: Dict[str, List[Any]]) -> None:
         raise NotImplementedError
+    
+    @abc.abstractmethod
+    def exportToVtk(self: 'ExtractSimulationResultsRepositoryInterface', info: List[Any]) -> None:
+        raise NotImplementedError

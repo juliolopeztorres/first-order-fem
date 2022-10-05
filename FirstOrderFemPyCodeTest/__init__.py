@@ -1,3 +1,3 @@
 from FirstOrderFemPyCodeTest.Domain.Model.TestSimulation import TestSimulation
 from FirstOrderFemPyCodeTest.Data.TestExtractorService import TestExtractorService
-from FirstOrderFemPyCodeTest.Domain.Model.TestExportVtk import TestExportVtk
+from FirstOrderFemPyCodeTest.Data.TestVtkService import TestVtkService

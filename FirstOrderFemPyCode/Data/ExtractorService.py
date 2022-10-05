@@ -111,7 +111,7 @@ class ExtractorService(AbstractFemModel):
 
         return results
 
-    def extractPlotInfo(self: 'ExtractorService', plot: Plot = Plot.VTK, pointsPerDirection: int = 25) -> List[Any]:
+    def extractPlotInfo(self: 'ExtractorService', plot: Plot, pointsPerDirection: int = 25) -> List[Any]:
         if plot == ExtractorService.Plot.VTK:
             plotInfo = self.__getElementsElectricFieldVector()
         elif plot == ExtractorService.Plot.CARTESIAN_GRID:

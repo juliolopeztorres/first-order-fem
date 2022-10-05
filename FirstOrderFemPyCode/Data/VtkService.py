@@ -1,20 +1,21 @@
-from typing import Any, Dict, List, Optional, Tuple
-from FirstOrderFemPyCode.Domain.Model.Mesh import Mesh
+from typing import Any, Dict, List, Tuple
+from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 from pyevtk.vtk import VtkFile, VtkUnstructuredGrid, VtkTriangle
 import numpy as np
 import FirstOrderFemPyCode.Framework.Util as Util
-import json
 from FirstOrderFemPyCode.Framework.Container import config
 import subprocess
 
-class ExportVtk:
-    __path: str
-    
-    def __init__(self: 'ExportVtk', path: str) -> None:
-        self.__path = path
-    
+class VtkService:
+    __simulationDescription: SimulationDescription
+
+    def __init__(self: 'VtkService', simulationDescription: SimulationDescription) -> None:
+        self.__simulationDescription = simulationDescription
+
+    # ----------------------------------------------------------------------------------------------
+    # http://spikard.blogspot.com/2015/07/visualization-of-unstructured-grid-data.html    
     # These two functions are taken from original 'evtk.hl' module without changes.
-    def __addDataToFile(self: 'ExportVtk', vtkFile, cellData, pointData):
+    def __addDataToFile(self: 'VtkService', vtkFile, cellData, pointData):
         # Point data
         if pointData is not None:
             keys = pointData.keys()
@@ -33,7 +34,7 @@ class ExportVtk:
                 vtkFile.addData(key, data)
             vtkFile.closeData("Cell")
 
-    def __appendDataToFile(self: 'ExportVtk', vtkFile, cellData, pointData):
+    def __appendDataToFile(self: 'VtkService', vtkFile, cellData, pointData):
         # Append data to binary section
         if pointData is not None:
             keys = pointData.keys()
@@ -47,7 +48,7 @@ class ExportVtk:
                 data = cellData[key]
                 vtkFile.appendData(data)
 
-    def __triangle_faces_to_VTK(self: 'ExportVtk', filename, x, y, z, faces, point_data, cell_data):
+    def __triangle_faces_to_VTK(self: 'VtkService', filename, x, y, z, faces, point_data, cell_data):
         vertices = (x, y, z)
 
         w = VtkFile(filename, VtkUnstructuredGrid)
@@ -84,23 +85,16 @@ class ExportVtk:
 
         w.save()
         return w.getFileName()
+    # -----------------------------------------------------------------------------------------------
 
-    def __getOrderedListFromDictWithIntegerKeys(self: 'ExportVtk', input: Dict[int, Any]) -> List[Any]:
+    def __getOrderedListFromDictWithIntegerKeys(self: 'VtkService', input: Dict[int, Any]) -> List[Any]:
         output = []
         for index in range(len(input)):
             output.append(input[index + 1])
 
         return output
 
-    def __getElementEVector(self: 'ExportVtk') -> List[Any]:
-        try:
-            return json.loads(
-                open(Util.joinPaths(self.__path, "plot-info.json"), 'r').read()
-            )
-        except Exception as e:
-            raise Exception('No relevant electric field info file was found')
-
-    def __mapElementEVector(self: 'ExportVtk', EVector: List[Any]) -> Dict[int, Tuple[float, float, float]]:
+    def __mapElementEVector(self: 'VtkService', EVector: List[Any]) -> Dict[int, Tuple[float, float, float]]:
         EVectorMapped = {}
         
         for values in EVector:
@@ -108,32 +102,15 @@ class ExportVtk:
 
         return EVectorMapped
 
-    def __getNodeVoltages(self: 'ExportVtk') -> Dict[int, float]:
-        voltages = {}
-
-        try:
-            solutionRead = json.loads(
-                open(Util.joinPaths(self.__path, 'solution.json'), 'r').read()
-            )
-            
-            for nodeIndex, voltaje in solutionRead.items():
-                voltages[int(nodeIndex)] = voltaje
-
-        except:
-            raise Exception('No solution file was found')
-
-        return voltages
-
-    def run(self: 'ExportVtk', mesh: Mesh, voltages: Optional[Dict[int, float]], EVector: Optional[List[Any]], open: bool = True) -> None:
-        voltages = voltages if voltages else self.__getNodeVoltages()
-        
+    def export(self: 'VtkService', voltages: Dict[int, float], EVector: List[Any], open: bool = True) -> None:
+        mesh = self.__simulationDescription.mesh
         EVectorOrdered = np.array(self.__getOrderedListFromDictWithIntegerKeys(
-            self.__mapElementEVector(EVector if EVector else self.__getElementEVector()))
-        )
+            self.__mapElementEVector(EVector)
+        ))
 
         vertices = [np.array(list(point.Vector))for point in mesh.points]
 
-        outputPath = Util.joinPaths(self.__path, "paraview-info")
+        outputPath = Util.joinPaths(self.__simulationDescription.path, "paraview-info")
         self.__triangle_faces_to_VTK(
             outputPath,
             x=np.array([v[0] for v in vertices]), 
