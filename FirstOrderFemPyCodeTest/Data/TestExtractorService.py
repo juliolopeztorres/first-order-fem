@@ -1,4 +1,4 @@
-from FirstOrderFemPyCode.Data.ExtractSimulationResultsRepository import ExtractSimulationResultsRepository
+from FirstOrderFemPyCode.Data.DataRepository import DataRepository
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 from FirstOrderFemPyCodeTest.TestAbstractSimulation import TestAbstractSimulation
 from FirstOrderFemPyCode.Data.ExtractorService import ExtractorService
@@ -13,7 +13,7 @@ class TestExtractorService(TestAbstractSimulation):
         self.assertEquals(4.4270938896091334e-11, sum([values['charge'] for values in chargeInfo]))
         
         # TODO: I/O could be tested separately
-        repository = ExtractSimulationResultsRepository()
+        repository = DataRepository()
         simulationDescription = SimulationDescription()
         simulationDescription.mesh = self._mesh
         simulationDescription.path = TestExtractorService.PATH
