@@ -100,7 +100,7 @@ class Simulation(AbstractFemModel):
                 np.matmul(C_jointed_matrix[self.__freeNodesNumber:, self.__freeNodesNumber:], prescribedNodesVector)
             ))
 
-    def run(self: 'Simulation') -> None:
+    def solve(self: 'Simulation') -> None:
         self.__constructAndSolveLinearSystem(
             self.__getJointedMatrix(
                 self._getDisjointedMatrices(),

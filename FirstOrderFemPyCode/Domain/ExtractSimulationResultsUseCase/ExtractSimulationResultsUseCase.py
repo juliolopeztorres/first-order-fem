@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsRepositoryInterface import ExtractSimulationResultsRepositoryInterface
 from FirstOrderFemPyCode.Domain.Model.ExportOptions import MatPlotLibType, RenderOption
-from FirstOrderFemPyCode.Domain.Model.Plot import Plot
+from FirstOrderFemPyCode.Domain.PlotResultsUseCase.PlotResultsUseCase import PlotResultsUseCase
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 
 class ExtractSimulationResultsUseCase:
@@ -23,7 +23,7 @@ class ExtractSimulationResultsUseCase:
         self.__repository.saveInfoToFile(info)
         
         if simulationDescription.exportOptions.renderOption == RenderOption.MATPLOTLIB:
-            Plot().run(info)
+            PlotResultsUseCase().plot(info)
             
         chargeInfo = self.__repository.extractChargeInfo()
         

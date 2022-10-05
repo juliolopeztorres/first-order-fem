@@ -3,8 +3,8 @@ from typing import Any, List, Tuple
 import matplotlib.pyplot as plt
 
 
-class Plot:
-    def __plotColorMap(self: 'Plot', X: List[float], Y: List[float], magnitude: List[float], title: str, xlabel: str, ylabel: str) -> None:
+class PlotResultsUseCase:
+    def __plotColorMap(self: 'PlotResultsUseCase', X: List[float], Y: List[float], magnitude: List[float], title: str, xlabel: str, ylabel: str) -> None:
         color_map = plt.get_cmap('Spectral')
 
         plt.figure(figsize=(4.8, 4.8))
@@ -20,7 +20,7 @@ class Plot:
         plt.tight_layout()
         plt.show()
 
-    def __mapValuesToPlotFromInfo(self: 'Plot', plotInfo: List[Any]) -> Tuple[List[float], List[float], List[float], List[float]]:
+    def __mapValuesToPlotFromInfo(self: 'PlotResultsUseCase', plotInfo: List[Any]) -> Tuple[List[float], List[float], List[float], List[float]]:
         X, Y, Voltage, E_Magnitude = [], [], [], []
 
         for info in plotInfo:
@@ -31,7 +31,7 @@ class Plot:
 
         return X, Y, Voltage, E_Magnitude
 
-    def run(self: 'Plot', plotInfo: List[Any]) -> None:
+    def plot(self: 'PlotResultsUseCase', plotInfo: List[Any]) -> None:
         X, Y, Voltage, E_Magnitude = self.__mapValuesToPlotFromInfo(plotInfo)
 
         self.__plotColorMap(X, Y, Voltage, "Voltage for cross section [V]", "x [mm]", "y [mm]")
