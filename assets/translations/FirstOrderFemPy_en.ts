@@ -59,6 +59,11 @@
         <source>EXPORT_OPTIONS</source>
         <translation>Export options</translation>
     </message>
+    <message>
+        <location filename="../ui/TaskPanelSimulationContainerProperties.ui"/>
+        <source>IDLE</source>
+        <translation>Waiting for the simulation to run...</translation>
+    </message>
 </context>
 <context>
     <name>ExportOptions</name>
@@ -197,6 +202,16 @@
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Command.py"/>
         <source>TOOLTIP</source>
         <translation>Attach a new simulation object to the active document</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
+        <source>CHARGE_ON_FRONTIER_OUTPUT</source>
+        <translation>Total charge on frontier</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
+        <source>ENERGY_OUTPUT</source>
+        <translation>Energy</translation>
     </message>
 </context>
 <context>

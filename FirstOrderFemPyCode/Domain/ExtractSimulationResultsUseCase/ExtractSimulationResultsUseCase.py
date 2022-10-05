@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsRepositoryInterface import \
     ExtractSimulationResultsRepositoryInterface
@@ -16,7 +16,7 @@ class ExtractSimulationResultsUseCase:
     def __init__(self, repository: ExtractSimulationResultsRepositoryInterface) -> None:
         self.__repository = repository
 
-    def extract(self: 'ExtractSimulationResultsUseCase', simulationDescription: SimulationDescription, nodeVoltages: Optional[Dict[int, float]]) -> None:
+    def extract(self: 'ExtractSimulationResultsUseCase', simulationDescription: SimulationDescription, nodeVoltages: Optional[Dict[int, float]]) -> Dict[str, List[Any]]:
         # Init simulation info
         self.__repository.setSimulationInformation(
             simulationDescription, nodeVoltages)
@@ -39,9 +39,6 @@ class ExtractSimulationResultsUseCase:
             PlotResultsUseCase().plot(info)
 
         chargeInfo = self.__repository.extractChargeInfo()
-
-        for frontierElementsGroupName, frontierElectricFieldVector in chargeInfo.items():
-            totalCharge = sum([values['charge'] for values in frontierElectricFieldVector])
-            print(f'Total charge on frontier {frontierElementsGroupName}: {totalCharge}C\n')
-
         self.__repository.saveChargeInfoToFile(chargeInfo)
+        
+        return chargeInfo

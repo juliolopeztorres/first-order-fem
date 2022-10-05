@@ -2,7 +2,10 @@ import os
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
 import FreeCAD
 
-from typing import Any, Dict, Optional, Union
+if FreeCAD.GuiUp:
+    import FreeCADGui
+
+from typing import Any, Dict, List, Optional, Union
 from FirstOrderFemPyCode.Framework.View.TaskPanelExportOptionsPropertiesViewInterface import MatPlotLibTypeViewLabel, RenderOptionViewLabel, TaskPanelExportOptionsPropertiesViewInterface
 from FirstOrderFemPyCode.Framework.View.TaskPanelSimulationContainerPropertiesViewInterface import TaskPanelSimulationContainerPropertiesViewInterface
 
@@ -17,9 +20,6 @@ from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationUseCase import
 from FirstOrderFemPyCode.Framework.Container import Container
 import FirstOrderFemPyCode.Framework.Util as Util
 from pathlib import Path
-
-if FreeCAD.GuiUp:
-    import FreeCADGui
 
 class ViewProvider(
     ViewProviderInterface, 
@@ -70,6 +70,20 @@ class ViewProvider(
     def __cleanAndCreateSimulationFolder(self, path: str) -> None:
         Util.removeFolder(path)
         Path(path).mkdir(exist_ok=True, parents=True)
+
+    def __showChargeInfo(self, chargeInfo: Dict[str, List[Any]]) -> None:
+        chargeOnFrontierText = FreeCAD.Qt.translate("SimulationContainer", "CHARGE_ON_FRONTIER_OUTPUT")
+        
+        if not self.__view:
+            return
+        
+        chargeInfoParsed: List[str] = []
+        for frontierElementsGroupName, frontierElectricFieldVector in chargeInfo.items():
+            totalCharge = sum([values['charge'] for values in frontierElectricFieldVector])
+
+            chargeInfoParsed.append(f'{chargeOnFrontierText} {frontierElementsGroupName}: {totalCharge}C\n\n')
+
+        self.__view.appendText(''.join(chargeInfoParsed))
 
     def getIcon(self) -> str:
         return os.path.join(Util.getModulePath(), "assets", "icons", "analysis.png")
@@ -144,18 +158,34 @@ class ViewProvider(
         )
         
         self.__cleanAndCreateSimulationFolder(simulationDescription.path)
-        self.__lastSolution = self.__runSimulationUseCase.run(simulationDescription)
+        simulationOutput = self.__runSimulationUseCase.run(simulationDescription)
+        self.__lastSolution = simulationOutput['nodeVoltages']
         
         Util.openFileManager(simulationDescription.path)
 
+        if not self.__view:
+            return
+        
+        self.__view.resetText()
+        energyText = FreeCAD.Qt.translate("SimulationContainer", "ENERGY_OUTPUT")
+        self.__view.setText(f'{energyText}:{simulationOutput["energy"]}J\n\n')
+
+        self.__showChargeInfo(simulationOutput['chargeInfo'])
+
     def onBtnRunExportClicked(self) -> Any:
-        self.__extractSimulationResultsUseCase.extract(
+        chargeInfo = self.__extractSimulationResultsUseCase.extract(
             SimulationDescriptionMapper.map(
                 self.__viewObject.Object, 
                 Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
             ), 
             self.__lastSolution
         )
+        
+        if not self.__view:
+            return
+
+        self.__view.resetText()
+        self.__showChargeInfo(chargeInfo)
 
     def onInputChanged(self, input: str, value: Union[RenderOptionViewLabel, MatPlotLibTypeViewLabel, int]) -> None:
         TaskPanelExportOptionsPropertiesCallback.onInputChanged(self, input, value)
