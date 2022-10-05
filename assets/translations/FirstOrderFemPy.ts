@@ -49,6 +49,10 @@
         <location filename="../ui/TaskPanelSimulationContainerProperties.ui"/>
         <source>EXPORT_OPTIONS</source>
     </message>
+    <message>
+        <location filename="../ui/TaskPanelSimulationContainerProperties.ui"/>
+        <source>IDLE</source>
+    </message>
 </context>
 <context>
     <name>ExportOptions</name>

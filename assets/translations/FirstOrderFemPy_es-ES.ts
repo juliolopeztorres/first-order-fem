@@ -59,6 +59,11 @@
         <source>EXPORT_OPTIONS</source>
         <translation>Opciones de exportación</translation>
     </message>
+    <message>
+        <location filename="../ui/TaskPanelSimulationContainerProperties.ui"/>
+        <source>IDLE</source>
+        <translation>Esperando a que se ejecute la simulación...</translation>
+    </message>
 </context>
 <context>
     <name>ExportOptions</name>
