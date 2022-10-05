@@ -7,12 +7,28 @@ from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationRepositoryInte
 
 
 class DataRepository(RunSimulationRepositoryInterface):
+    def _getNodeVoltages(self: 'DataRepository', path: str, fileNameWithExtension: str) -> Dict[int, float]:
+        voltages = {}
 
-    def __writeJsonContent(self: 'DataRepository', path: str, outputNameWithExtension: str, content: Any) -> None:
+        try:
+            solutionRead = json.loads(
+                open(Util.joinPaths(path, fileNameWithExtension), 'r').read()
+            )
+            
+            for nodeIndex, voltaje in solutionRead.items():
+                voltages[int(nodeIndex)] = voltaje
+
+        except:
+            raise Exception('No solution file was found')
+
+        return voltages
+
+    def _writeJsonContent(self: 'DataRepository', path: str, outputNameWithExtension: str, content: Any) -> None:
         with open(Util.joinPaths(path, outputNameWithExtension), 'w') as outfile:
             json.dump(content, outfile)
 
         outfile.close()
 
     def writeNodeVoltages(self: 'DataRepository', path: str, outputNameWithExtension: str, voltages: Dict[int, float]) -> None:
-        self.__writeJsonContent(path, outputNameWithExtension, voltages)
+        self._writeJsonContent(path, outputNameWithExtension, voltages)
+

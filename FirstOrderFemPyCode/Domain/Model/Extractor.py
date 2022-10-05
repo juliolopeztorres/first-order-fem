@@ -1,6 +1,5 @@
 from enum import Enum, auto, unique
-import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from FirstOrderFemPyCode.Domain.Model.AbstractFemModel import AbstractFemModel
 
 from FirstOrderFemPyCode.Domain.Model.Mesh import Mesh
@@ -18,34 +17,14 @@ class Extractor(AbstractFemModel):
         ELEMENT_CENTER = auto()
         VTK = auto()
    
-    __path: str
-    
     __linearCoefficients: Dict[int, List[float]]
     
-    def __init__(self: 'Extractor', path: str, mesh: Mesh, nodeVoltages: Optional[Dict[int, float]]) -> None:
+    def __init__(self: 'Extractor', mesh: Mesh, nodeVoltages: Dict[int, float]) -> None:
         super().__init__(mesh)
-        self.__path = path
         
-        self.nodeVoltages = nodeVoltages if nodeVoltages else self.__getNodeVoltages()
+        self.nodeVoltages = nodeVoltages
 
         self.__linearCoefficients = self._getCoefficientDictForElements()
-
-    # TODO: This should be injected and non-optional
-    def __getNodeVoltages(self: 'Extractor') -> Dict[int, float]:
-        voltages = {}
-
-        try:
-            solutionRead = json.loads(
-                open(Util.joinPaths(self.__path, 'solution.json'), 'r').read()
-            )
-            
-            for nodeIndex, voltaje in solutionRead.items():
-                voltages[int(nodeIndex)] = voltaje
-
-        except:
-            raise Exception('No solution file was found')
-
-        return voltages
 
     def __sign(self: 'Extractor', p1: List[float], p2: List[float], p3: List[float]) -> float:
         return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
@@ -119,7 +98,32 @@ class Extractor(AbstractFemModel):
 
         return Util.addAndGetGroupInDocument(name)
 
-    def __getFrontierElementsValues(self: 'Extractor', offsetName: str, frontierElements: List[int]) -> List[Any]:
+    def __getElementsElectricFieldVector(self: 'Extractor') -> List[Any]:
+        results = []
+        for element in self._elements:
+            elementCoefficients = self.__linearCoefficients[element.Index + 1]
+            results.append(
+                {
+                    'element': element.Index + 1,
+                    'E_vector': (-elementCoefficients[1], -elementCoefficients[2])
+                }
+            )
+
+        return results
+
+    def extractPlotInfo(self: 'Extractor', plot: Plot = Plot.VTK, pointsPerDirection: int = 25) -> List[Any]:
+        if plot == Extractor.Plot.VTK:
+            plotInfo = self.__getElementsElectricFieldVector()
+        elif plot == Extractor.Plot.CARTESIAN_GRID:
+            plotInfo = self.__getCartesianGridValues(pointsPerDirection)
+        elif plot == Extractor.Plot.ELEMENT_CENTER:
+            plotInfo = self.__getElementsCenterValue()
+        else:
+            raise Exception(f'Unexpected plot type entered {plot}')
+
+        return plotInfo
+
+    def getFrontierElementsValues(self: 'Extractor', offsetName: str, frontierElements: List[int]) -> List[Any]:
         normalsGroup = self.__getCleanedGroup(f'normals_{offsetName}')
         
         frontierElementsValues = []
@@ -172,43 +176,3 @@ class Extractor(AbstractFemModel):
         FreeCAD.ActiveDocument.recompute()
             
         return frontierElementsValues
-
-    def __getElementsElectricFieldVector(self: 'Extractor') -> List[Any]:
-        results = []
-        for element in self._elements:
-            elementCoefficients = self.__linearCoefficients[element.Index + 1]
-            results.append(
-                {
-                    'element': element.Index + 1,
-                    'E_vector': (-elementCoefficients[1], -elementCoefficients[2])
-                }
-            )
-
-        return results
-
-    def writeMappedValuesToFile(self: 'Extractor', results: List[Any], outputFileName: str) -> None:
-        with open(Util.joinPaths(self.__path, outputFileName), 'w') as output:
-            json.dump(results, output)
-
-        output.close()
-
-    def extractPlotInfo(self: 'Extractor', plot: Plot = Plot.VTK, pointsPerDirection: int = 25) -> List[Any]:
-        if plot == Extractor.Plot.VTK:
-            results = self.__getElementsElectricFieldVector()
-        elif plot == Extractor.Plot.CARTESIAN_GRID:
-            results = self.__getCartesianGridValues(pointsPerDirection)
-        elif plot == Extractor.Plot.ELEMENT_CENTER:
-            results = self.__getElementsCenterValue()
-        else:
-            raise Exception(f'Unexpected plot type entered {plot}')
-
-        self.writeMappedValuesToFile(results, 'plot-info.json')
-        
-        return results
-
-    def extractChargeOnFrontier(self: 'Extractor', offsetName: str, frontierElements: List[int]) -> float:
-        frontierElectricFieldVector = self.__getFrontierElementsValues(offsetName, frontierElements)
-
-        self.writeMappedValuesToFile(frontierElectricFieldVector, f'relevant-electric-field-vector_{offsetName}.json')
-
-        return sum([values['charge'] for values in frontierElectricFieldVector])

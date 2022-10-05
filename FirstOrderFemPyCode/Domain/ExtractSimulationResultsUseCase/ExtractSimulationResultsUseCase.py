@@ -1,6 +1,7 @@
 from typing import Dict, Optional
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsRepositoryInterface import ExtractSimulationResultsRepositoryInterface
 from FirstOrderFemPyCode.Domain.Model.ExportOptions import MatPlotLibType, RenderOption
+from FirstOrderFemPyCode.Domain.Model.Plot import Plot
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 
 class ExtractSimulationResultsUseCase:
@@ -13,10 +14,17 @@ class ExtractSimulationResultsUseCase:
         self.__repository.setSimulationInformation(simulationDescription, nodeVoltages)
     
         if simulationDescription.exportOptions.renderOption == RenderOption.VTK:
-            self.__repository.extractInfoForVtk()
+            info = self.__repository.extractInfoForVtk()
         elif simulationDescription.exportOptions.matPlotLibType == MatPlotLibType.MIDDLE_POINTS:
-            self.__repository.extractInfoForPlotElementsCenter()
+            info = self.__repository.extractInfoForPlotElementsCenter()
         else:
-            self.__repository.extractInfoForPlotCartesianGrid()
+            info = self.__repository.extractInfoForPlotCartesianGrid()
             
-        self.__repository.extractChargeInfo()
+        self.__repository.saveInfoToFile(info)
+        
+        if simulationDescription.exportOptions.renderOption == RenderOption.MATPLOTLIB:
+            Plot(simulationDescription.path).run()
+            
+        chargeInfo = self.__repository.extractChargeInfo()
+        
+        self.__repository.saveChargeInfoToFile(chargeInfo)

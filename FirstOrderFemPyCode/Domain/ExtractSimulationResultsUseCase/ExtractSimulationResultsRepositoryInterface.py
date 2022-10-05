@@ -1,5 +1,5 @@
 import abc
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import \
     SimulationDescription
@@ -12,17 +12,25 @@ class ExtractSimulationResultsRepositoryInterface:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def extractInfoForVtk(self: 'ExtractSimulationResultsRepositoryInterface') -> None:
+    def extractInfoForVtk(self: 'ExtractSimulationResultsRepositoryInterface') -> List[Any]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def extractInfoForPlotElementsCenter(self: 'ExtractSimulationResultsRepositoryInterface') -> None:
+    def extractInfoForPlotElementsCenter(self: 'ExtractSimulationResultsRepositoryInterface') -> List[Any]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def extractInfoForPlotCartesianGrid(self: 'ExtractSimulationResultsRepositoryInterface') -> None:
+    def extractInfoForPlotCartesianGrid(self: 'ExtractSimulationResultsRepositoryInterface') -> List[Any]:
         raise NotImplementedError
     
     @abc.abstractmethod
-    def extractChargeInfo(self: 'ExtractSimulationResultsRepositoryInterface') -> None:
+    def extractChargeInfo(self: 'ExtractSimulationResultsRepositoryInterface') -> Dict[str, List[Any]]:
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def saveInfoToFile(self: 'ExtractSimulationResultsRepositoryInterface', info: List[Any]) -> None:
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def saveChargeInfoToFile(self: 'ExtractSimulationResultsRepositoryInterface', chargeInfo: Dict[str, List[Any]]) -> None:
         raise NotImplementedError
