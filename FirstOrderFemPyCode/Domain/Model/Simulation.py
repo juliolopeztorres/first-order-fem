@@ -1,4 +1,3 @@
-# import json
 from typing import Any, Dict, List, Optional
 from FirstOrderFemPyCode.Domain.Model.AbstractFemModel import AbstractFemModel
 from FirstOrderFemPyCode.Domain.Model.Mesh import Mesh
@@ -40,41 +39,45 @@ class Simulation(AbstractFemModel):
         self.__nodesNumber = len(self.__nodes)
         self.__freeNodesNumber = self.__nodesNumber - len(self.__prescribedNodes)
 
+    def __getDiagonalCoefficientForJointedMatrix(self: 'Simulation', row: int, C_disjointed_matrices: np.ndarray, pointToElementsMap: Dict[int, List[Any]]) -> float:
+        diagonalNode = self.__nodes[row].Index
+
+        elementsWithGlobalNodes = pointToElementsMap[diagonalNode]
+
+        coefficient = 0.0
+        for elementWithGlobalNodes in elementsWithGlobalNodes:
+            nodeLocal = self._getLocalNodeIndexForElementGlobalIndex(diagonalNode, elementWithGlobalNodes)
+            coefficient += C_disjointed_matrices[elementWithGlobalNodes.Index][nodeLocal][nodeLocal]
+
+        return coefficient
+
+    def __getOffDiagonalCoefficientForJointedMatrix(self: 'Simulation', row: int, column: int, C_disjointed_matrices: np.ndarray, pointToElementsMap: Dict[int, List[Any]]) -> float:
+        nodeGlobalIndex1, nodeGlobalIndex2 = [self.__nodes[row].Index, self.__nodes[column].Index]
+
+        elementsWithGlobalIndex1 = pointToElementsMap[nodeGlobalIndex1]
+        elementsWithGlobalIndex2 = pointToElementsMap[nodeGlobalIndex2]
+
+        elementsWithGlobalNodes = [element for element in elementsWithGlobalIndex1 if element in elementsWithGlobalIndex2]
+
+        coefficient = 0.0
+        for elementWithGlobalNodes in elementsWithGlobalNodes:
+            coefficient += C_disjointed_matrices[elementWithGlobalNodes.Index]\
+                [self._getLocalNodeIndexForElementGlobalIndex(nodeGlobalIndex1, elementWithGlobalNodes)]\
+                [self._getLocalNodeIndexForElementGlobalIndex(nodeGlobalIndex2, elementWithGlobalNodes)]
+
+        return coefficient
+
     def __getJointedMatrix(self: 'Simulation', C_disjointed_matrices: np.ndarray, pointToElementsMap: Dict[int, List[Any]]) -> Any:
         C_jointed_matrix = np.zeros((self.__nodesNumber, self.__nodesNumber))
 
         for i in range(self.__nodesNumber):
             for j in range(self.__nodesNumber):
                 if i == j:
-                    # Diagonal
-                    diagonalNode = self.__nodes[i].Index
-
-                    elementsWithGlobalNodes = pointToElementsMap[diagonalNode]
-
-                    coefficient = 0.0
-                    for elementWithGlobalNodes in elementsWithGlobalNodes:
-                        nodeLocal = self._getLocalNodeIndexForElementGlobalIndex(diagonalNode, elementWithGlobalNodes)
-                        coefficient += C_disjointed_matrices[elementWithGlobalNodes.Index][nodeLocal][nodeLocal]
-
-                    C_jointed_matrix[i][j] = coefficient
+                    C_jointed_matrix[i][j] = self.__getDiagonalCoefficientForJointedMatrix(i, C_disjointed_matrices, pointToElementsMap)
 
                     continue
 
-                # Off diagonal
-                nodeGlobalIndex1, nodeGlobalIndex2 = [self.__nodes[i].Index, self.__nodes[j].Index]
-
-                elementsWithGlobalIndex1 = pointToElementsMap[nodeGlobalIndex1]
-                elementsWithGlobalIndex2 = pointToElementsMap[nodeGlobalIndex2]
-
-                elementsWithGlobalNodes = [element for element in elementsWithGlobalIndex1 if element in elementsWithGlobalIndex2]
-
-                coefficient = 0.0
-                for elementWithGlobalNodes in elementsWithGlobalNodes:
-                    coefficient += C_disjointed_matrices[elementWithGlobalNodes.Index]\
-                        [self._getLocalNodeIndexForElementGlobalIndex(nodeGlobalIndex1, elementWithGlobalNodes)]\
-                        [self._getLocalNodeIndexForElementGlobalIndex(nodeGlobalIndex2, elementWithGlobalNodes)]
-
-                C_jointed_matrix[i][j] = coefficient
+                C_jointed_matrix[i][j] = self.__getOffDiagonalCoefficientForJointedMatrix(i, j, C_disjointed_matrices, pointToElementsMap)
 
         return C_jointed_matrix
 
