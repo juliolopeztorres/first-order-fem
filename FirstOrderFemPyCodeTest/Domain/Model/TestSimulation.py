@@ -7,7 +7,7 @@ class TestSimulation(TestAbstractSimulation):
     def testPlainPlatesCapacitor(self) -> None:       
         simulation = Simulation(self._mesh, prescribedNodes)#, TestSimulation.PATH)
         
-        simulation.run()
+        simulation.solve()
                
         self.assertEquals(2.2135469609968867e-11, simulation.energy)
         self.assertListEqual(
@@ -29,9 +29,6 @@ class TestSimulation(TestAbstractSimulation):
         )
         
         # TODO: I/O could be tested separately
-        if not simulation.nodeVoltages:
-            self.fail('Could not retrieve solution node voltages')    
-            
         DataRepository().writeNodeVoltages(TestSimulation.PATH, 'solution.json', simulation.nodeVoltages)
 
         self.assertEquals(

@@ -16,14 +16,13 @@ class RunSimulationUseCase:
         mesh = simulationDescription.mesh
 
         simulation = Simulation(mesh, simulationDescription.prescribedNodes)#, simulationDescription.path)
-        simulation.run()
+        simulation.solve()
         # print('Solution')
         print(f'Energy:{simulation.energy}J\n')
         # solutionStr = 'V\n'.join([str(solutioni) for solutioni in simulation.solution]) + 'V\n'
         # print(f'Free Nodes:\n{solutionStr}')
 
-        if simulation.nodeVoltages:
-            self.__repository.writeNodeVoltages(simulationDescription.path, 'solution.json', simulation.nodeVoltages)
+        self.__repository.writeNodeVoltages(simulationDescription.path, 'solution.json', simulation.nodeVoltages)
 
         self.__extractSimulationResultsUseCase.extract(simulationDescription, simulation.nodeVoltages)
 
