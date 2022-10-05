@@ -22,8 +22,7 @@ class RunSimulationUseCase:
         # solutionStr = 'V\n'.join([str(solutioni) for solutioni in simulation.solution]) + 'V\n'
         # print(f'Free Nodes:\n{solutionStr}')
 
-        if simulation.nodeVoltages:
-            self.__repository.writeNodeVoltages(simulationDescription.path, 'solution.json', simulation.nodeVoltages)
+        self.__repository.writeNodeVoltages(simulationDescription.path, 'solution.json', simulation.nodeVoltages)
 
         self.__extractSimulationResultsUseCase.extract(simulationDescription, simulation.nodeVoltages)
 

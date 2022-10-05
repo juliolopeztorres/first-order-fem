@@ -29,9 +29,6 @@ class TestSimulation(TestAbstractSimulation):
         )
         
         # TODO: I/O could be tested separately
-        if not simulation.nodeVoltages:
-            self.fail('Could not retrieve solution node voltages')    
-            
         DataRepository().writeNodeVoltages(TestSimulation.PATH, 'solution.json', simulation.nodeVoltages)
 
         self.assertEquals(

@@ -2,6 +2,7 @@ from enum import Enum, auto, unique
 import json
 import math
 from typing import Any, Dict, List, Optional
+from FirstOrderFemPyCode.Domain.Model.AbstractFemModel import AbstractFemModel
 
 from FirstOrderFemPyCode.Domain.Model.Mesh import Mesh
 from FirstOrderFemPyCode.Domain.Model import EPSILON_0, MAP_INDICES
@@ -11,31 +12,26 @@ import FirstOrderFemPyCode.Framework.Util as Util
 import FreeCAD
 import Draft
 
-class Extractor:
+class Extractor(AbstractFemModel):
     @unique
     class Plot(Enum):
         CARTESIAN_GRID = auto()
         ELEMENT_CENTER = auto()
         VTK = auto()
    
-    __mesh: Mesh
-    __elements: np.ndarray # List of Mesh.Facets
-    
     __path: str
     
     __linearCoefficients: Dict[int, List[float]]
-    __nodeVoltages: Dict[int, float]
     
     def __init__(self: 'Extractor', path: str, mesh: Mesh, nodeVoltages: Optional[Dict[int, float]]) -> None:
+        super().__init__(mesh)
         self.__path = path
         
-        self.__mesh = mesh
-        self.__elements = np.array(mesh.elements)
-        
-        self.__nodeVoltages = nodeVoltages if nodeVoltages else self.__getNodeVoltages()
+        self.nodeVoltages = nodeVoltages if nodeVoltages else self.__getNodeVoltages()
 
         self.__linearCoefficients = self.__getCoefficientDictForElements()
 
+    # TODO: This should be injected and non-optional
     def __getNodeVoltages(self: 'Extractor') -> Dict[int, float]:
         voltages = {}
 
@@ -65,15 +61,6 @@ class Extractor:
 
         return not (has_neg and has_pos)
 
-    def __getXY(self: 'Extractor', i: int, direction: int, element: Any) -> float:
-        return element.Points[MAP_INDICES[i] - 1][direction] - element.Points[MAP_INDICES[MAP_INDICES[i]] - 1][direction]
-
-    def __getY(self: 'Extractor', i: int, element: Any) -> float:
-        return self.__getXY(i, 1, element)
-
-    def __getX(self: 'Extractor', i: int, element: Any) -> float:
-        return self.__getXY(i, 0, element)
-
     def __getK(self: 'Extractor', i: int, element: Any) -> float:
         points = element.Points
 
@@ -83,7 +70,7 @@ class Extractor:
             points[MAP_INDICES[initMapIndex] - 1][0] * points[initMapIndex - 1][1]
 
     def __getVoltagesForElement(self: 'Extractor', element: Any) -> List[float]:
-        return [self.__nodeVoltages[pointIndex + 1] for pointIndex in element.PointIndices]
+        return [self.nodeVoltages[pointIndex + 1] for pointIndex in element.PointIndices]
 
     def __getCoefficientsForElement(self: 'Extractor', element: Any, voltages: List[float]) -> List[float]:
         # area = element.Area
@@ -94,15 +81,15 @@ class Extractor:
         
         a = prefactor * sum([self.__getK(i + 1, element) * voltages[i] for i in range(3)])
         # Units for `b` and `c` are V/mm
-        b = prefactor * sum([self.__getY(i + 1, element) * voltages[i] for i in range(3)])
-        c = -prefactor * sum([self.__getX(i + 1, element) * voltages[i] for i in range(3)])
+        b = prefactor * sum([self._getY(i + 1, element) * voltages[i] for i in range(3)])
+        c = -prefactor * sum([self._getX(i + 1, element) * voltages[i] for i in range(3)])
         
         return [a, b, c]
 
     def __getCoefficientDictForElements(self: 'Extractor') -> Dict[int, List[float]]:
         result = {}
         
-        for element in self.__elements:
+        for element in self._elements:
             result[element.Index + 1] = self.__getCoefficientsForElement(element, self.__getVoltagesForElement(element))
         
         return result
@@ -117,13 +104,13 @@ class Extractor:
 
     def __getCartesianGridValues(self: 'Extractor', pointsPerDirection: int = 25) -> List[Any]:
         # Loop over x-y map, find triangle belonging, get its index and estimate voltage
-        x_max, y_max = self.__mesh.boundBox.XMax, self.__mesh.boundBox.YMax
-        x_min, y_min = self.__mesh.boundBox.XMin, self.__mesh.boundBox.YMin
+        x_max, y_max = self._mesh.boundBox.XMax, self._mesh.boundBox.YMax
+        x_min, y_min = self._mesh.boundBox.XMin, self._mesh.boundBox.YMin
 
         results = []
         for x in np.linspace(x_min, x_max, pointsPerDirection):
             for y in np.linspace(y_min, y_max, pointsPerDirection):
-                elementCandicate = [element for element in self.__elements if self.__pointInElement([x, y], element)]
+                elementCandicate = [element for element in self._elements if self.__pointInElement([x, y], element)]
                 
                 if len(elementCandicate) == 0:
                     results.append(
@@ -154,7 +141,7 @@ class Extractor:
 
     def __getElementsCenterValue(self: 'Extractor') -> List[Any]:
         results = []
-        for element in self.__elements:
+        for element in self._elements:
             x, y = element.InCircle[0][0:2]
 
             # Get Electric Field
@@ -189,7 +176,7 @@ class Extractor:
             
             # Calculate the charge by
             # 1.- Get the vector of the frontier, normalize
-            element = self.__elements[frontierElementIndex - 1]
+            element = self._elements[frontierElementIndex - 1]
             
             sideStartingNode = element.NeighbourIndices.index(4294967295)
             
@@ -236,7 +223,7 @@ class Extractor:
 
     def __getElementsElectricFieldVector(self: 'Extractor') -> List[Any]:
         results = []
-        for element in self.__elements:
+        for element in self._elements:
             elementCoefficients = self.__linearCoefficients[element.Index + 1]
             results.append(
                 {

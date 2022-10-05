@@ -1,14 +1,13 @@
 # import json
 from typing import Any, Dict, List, Optional
+from FirstOrderFemPyCode.Domain.Model.AbstractFemModel import AbstractFemModel
 from FirstOrderFemPyCode.Domain.Model.Mesh import Mesh
 
 import numpy as np
-from FirstOrderFemPyCode.Domain.Model import EPSILON_0, MAP_INDICES
+from FirstOrderFemPyCode.Domain.Model import EPSILON_0 # , MAP_INDICES
 
-class Simulation:
-    __mesh: Mesh
+class Simulation(AbstractFemModel):
     __prescribedNodes: Dict[int, float] # {18: 1.0, ..., 24: 0.0}
-    __elements: np.ndarray # List of FreeCAD Mesh.Facets
     __nodes: np.ndarray # List of FreeCAD Mesh.Points but ordered (prescribed at the end)
 
     __nodesNumber: int
@@ -17,17 +16,15 @@ class Simulation:
     # To be determined after `run` method
     solution: Any = None
     energy: Optional[float] = None
-    nodeVoltages: Optional[Dict[int, float]] = None
 
     def __init__(self: 'Simulation', mesh: Mesh, prescribedNodes: Dict[int, float]) -> None:
-        self.__mesh = mesh
-        self.__elements = np.array(self.__mesh.elements)
+        super().__init__(mesh)
         self.__prescribedNodes = prescribedNodes
 
         self.__initOrderedNodes()
 
     def __initOrderedNodes(self: 'Simulation') -> None:
-        nodes: List[Any] = self.__mesh.points.copy()
+        nodes: List[Any] = self._mesh.points.copy()
 
         for prescribedNode, _ in self.__prescribedNodes.items():
             for node in nodes:
@@ -45,17 +42,8 @@ class Simulation:
         self.__freeNodesNumber = self.__nodesNumber - \
             len(self.__prescribedNodes)
 
-    def __getXY(self: 'Simulation', i: int, direction: int, element: Any) -> float:
-        return element.Points[MAP_INDICES[i] - 1][direction] - element.Points[MAP_INDICES[MAP_INDICES[i]] - 1][direction]
-
-    def __getY(self: 'Simulation', i: int, element: Any) -> float:
-        return self.__getXY(i, 1, element)
-
-    def __getX(self: 'Simulation', i: int, element: Any) -> float:
-        return self.__getXY(i, 0, element)
-
     def __getCij(self: 'Simulation', m: int, n: int, element: Any) -> Any:
-        return (EPSILON_0 / (4 * element.Area)) * (self.__getY(m, element) * self.__getY(n, element) + self.__getX(m, element) * self.__getX(n, element))
+        return (EPSILON_0 / (4 * element.Area)) * (self._getY(m, element) * self._getY(n, element) + self._getX(m, element) * self._getX(n, element))
 
     def __getLocalNodeIndexForElementGlobalIndex(self: 'Simulation', globalIndex: int, element: Any) -> int:
         return element.PointIndices.index(globalIndex)
@@ -63,7 +51,7 @@ class Simulation:
     def __getDisjointedMatrices(self: 'Simulation') -> np.ndarray:
         C_disjoin_matrices = []
 
-        for element in self.__elements:
+        for element in self._elements:
             C_element = np.zeros((3, 3))
             for i in range(3):
                 for j in range(3):
@@ -76,7 +64,7 @@ class Simulation:
     def __createNodeToElementMap(self: 'Simulation') -> Dict[int, List[Any]]:
         pointToElementsMap: Dict[int, List[Any]] = {}
         # Loop over elements
-        for element in self.__elements:
+        for element in self._elements:
 
             # get the 3 points of each element
             pointIndices = element.PointIndices
