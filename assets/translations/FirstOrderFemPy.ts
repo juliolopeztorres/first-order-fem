@@ -32,6 +32,17 @@
     </message>
 </context>
 <context>
+    <name>progressBarForm</name>
+    <message>
+        <location filename="../ui/ProgressBar.ui"/>
+        <source>TITLE</source>
+    </message>
+    <message>
+        <location filename="../ui/ProgressBar.ui"/>
+        <source>TEXT</source>
+    </message>
+</context>
+<context>
     <name>simulationContainerPropertiesForm</name>
     <message>
         <location filename="../ui/TaskPanelSimulationContainerProperties.ui"/>
@@ -168,6 +179,38 @@
     <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Command.py"/>
         <source>TOOLTIP</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunExtractionThread.py"/>
+        <source>RUN_EXTRACTION_THREAD_MAPPING_SIMULATION_DATA</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunExtractionThread.py"/>
+        <source>RUN_EXTRACTION_THREAD_EXTRACTING_INFO</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_MAPPING_SIMULATION_DATA</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_CLEAN_SIMULATION_FOLDER</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_RUNNING_SIMULATION</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_EXTRACTING_INFORMATION</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_OPENING_OUTPUT_FOLDER</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_RETURNING</source>
     </message>
     <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>

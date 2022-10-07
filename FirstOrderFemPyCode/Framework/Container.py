@@ -22,11 +22,11 @@ from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationUseCase import
 from FirstOrderFemPyCode.Framework.View.TaskPanelPrescribedNodeGroupPropertiesView import TaskPanelPrescribedNodeGroupPropertiesView
 from FirstOrderFemPyCode.Framework.View.TaskPanelExportOptionsPropertiesView import TaskPanelExportOptionsPropertiesView
 from FirstOrderFemPyCode.Framework.View.TaskPanelSimulationContainerPropertiesView import TaskPanelSimulationContainerPropertiesView
+from FirstOrderFemPyCode.Framework.View.ProgressBarView import ProgressBarView
 from FirstOrderFemPyCode.Framework.View.ViewInterface import ViewInterface
 
 # Initialization of services and use cases
 dataRepository = DataRepository()
-extractSimulationResultsUseCase = ExtractSimulationResultsUseCase(dataRepository)
 
 @unique
 class Service(Enum):
@@ -39,8 +39,8 @@ class Service(Enum):
 dictionaryServices = {
     Service.UI_LOADER_SERVICE: UiLoaderService(),
     Service.DATA_REPOSITORY: dataRepository,
-    Service.EXTRACT_SIMULATION_RESULTS_USE_CASE: extractSimulationResultsUseCase,
-    Service.RUN_SIMULATION_USE_CASE: RunSimulationUseCase(dataRepository, extractSimulationResultsUseCase),
+    Service.EXTRACT_SIMULATION_RESULTS_USE_CASE: ExtractSimulationResultsUseCase(dataRepository),
+    Service.RUN_SIMULATION_USE_CASE: RunSimulationUseCase(dataRepository),
 }
 
 
@@ -49,6 +49,8 @@ class View(Enum):
     TASK_PANEL_PRESCRIBED_NODE_GROUP_PROPERTIES_VIEW = auto()
     TASK_PANEL_EXPORT_OPTIONS_PROPERTIES_VIEW = auto()
     TASK_PANEL_SIMULATION_CONTAINER_PROPERTIES_VIEW = auto()
+
+    PROGRESS_BAR_VIEW = auto()
 
 
 # Fist Any -> ViewInterface.Callback or children, Second Any -> Data Object (Optional), Third Any -> List of childs (Optional)
@@ -70,6 +72,8 @@ dictionaryViews: Dict[View, CreateViewCallableType] = {
     View.TASK_PANEL_PRESCRIBED_NODE_GROUP_PROPERTIES_VIEW: CreateCallable(TaskPanelPrescribedNodeGroupPropertiesView),
     View.TASK_PANEL_EXPORT_OPTIONS_PROPERTIES_VIEW: CreateCallable(TaskPanelExportOptionsPropertiesView),
     View.TASK_PANEL_SIMULATION_CONTAINER_PROPERTIES_VIEW: CreateCallable(TaskPanelSimulationContainerPropertiesView),
+    
+    View.PROGRESS_BAR_VIEW: CreateCallable(ProgressBarView),
 }
 
 

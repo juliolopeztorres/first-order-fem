@@ -44,8 +44,15 @@ class TaskPanelExportOptionsPropertiesViewInterface:
     def getActualView(self) -> Any:
         raise NotImplementedError
 
-    class Callback(ViewInterface.CallbackInterface):
+    @abc.abstractmethod
+    def disableView(self) -> None:
+        raise NotImplementedError
+        
+    @abc.abstractmethod
+    def enableView(self) -> None:
+        raise NotImplementedError
 
+    class Callback(ViewInterface.CallbackInterface):
         @abc.abstractmethod
         def onInputChanged(self, input: str, value: Union[RenderOptionViewLabel, MatPlotLibTypeViewLabel, int]) -> None:
             raise NotImplementedError

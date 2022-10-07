@@ -6,11 +6,9 @@ from FirstOrderFemPyCode.Domain.Model.Mesh import Mesh
 from FirstOrderFemPyCode.Domain.Model import EPSILON_0, MAP_INDICES
 import numpy as np
 
-import FirstOrderFemPyCode.Framework.Util as Util
 import FreeCAD
-import Draft
 
-class ExtractorService(AbstractFemModel):
+class Extractor(AbstractFemModel):
     @unique
     class Plot(Enum):
         CARTESIAN_GRID = auto()
@@ -19,17 +17,17 @@ class ExtractorService(AbstractFemModel):
    
     __linearCoefficients: Dict[int, List[float]]
     
-    def __init__(self: 'ExtractorService', mesh: Mesh, nodeVoltages: Dict[int, float]) -> None:
+    def __init__(self: 'Extractor', mesh: Mesh, nodeVoltages: Dict[int, float]) -> None:
         super().__init__(mesh)
         
         self.nodeVoltages = nodeVoltages
 
         self.__linearCoefficients = self._getCoefficientDictForElements()
 
-    def __sign(self: 'ExtractorService', p1: List[float], p2: List[float], p3: List[float]) -> float:
+    def __sign(self: 'Extractor', p1: List[float], p2: List[float], p3: List[float]) -> float:
         return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
 
-    def __pointInElement(self: 'ExtractorService', p: List[float], element: Any) -> bool:
+    def __pointInElement(self: 'Extractor', p: List[float], element: Any) -> bool:
         d1 = self.__sign(p, element.Points[0], element.Points[1])
         d2 = self.__sign(p, element.Points[1], element.Points[2])
         d3 = self.__sign(p, element.Points[2], element.Points[0])
@@ -39,7 +37,7 @@ class ExtractorService(AbstractFemModel):
 
         return not (has_neg and has_pos)
 
-    def __getPointVoltageAndEField(self: 'ExtractorService', x: float, y: float, elementId: int) -> Dict[str, Any]:
+    def __getPointVoltageAndEField(self: 'Extractor', x: float, y: float, elementId: int) -> Dict[str, Any]:
         elementCoefficients = self.__linearCoefficients[elementId]
         return {
                 'point': [x, y], 
@@ -47,7 +45,7 @@ class ExtractorService(AbstractFemModel):
                 'E_mag': self._getElectricFieldMagnitude(elementCoefficients) # V/mm
             }
 
-    def __getCartesianGridValues(self: 'ExtractorService', pointsPerDirection: int = 25) -> List[Any]:
+    def __getCartesianGridValues(self: 'Extractor', pointsPerDirection: int = 25) -> List[Any]:
         # Loop over x-y map, find triangle belonging, get its index and estimate voltage
         x_max, y_max = self._mesh.boundBox.XMax, self._mesh.boundBox.YMax
         x_min, y_min = self._mesh.boundBox.XMin, self._mesh.boundBox.YMin
@@ -77,7 +75,7 @@ class ExtractorService(AbstractFemModel):
                 
         return results
 
-    def __getElementsCenterValue(self: 'ExtractorService') -> List[Any]:
+    def __getElementsCenterValue(self: 'Extractor') -> List[Any]:
         results = []
         for element in self._elements:
             x, y = element.InCircle[0][0:2]
@@ -87,18 +85,7 @@ class ExtractorService(AbstractFemModel):
             
         return results
 
-    def __getCleanedGroup(self: 'ExtractorService', name: str) -> Any:
-        try:
-            group = Util.getObjectInDocumentByName(name)
-            group.removeObjectsFromDocument()
-
-            Util.removeObjectFromActiveDocument(name)
-        except:
-            pass
-
-        return Util.addAndGetGroupInDocument(name)
-
-    def __getElementsElectricFieldVector(self: 'ExtractorService') -> List[Any]:
+    def __getElementsElectricFieldVector(self: 'Extractor') -> List[Any]:
         results = []
         for element in self._elements:
             elementCoefficients = self.__linearCoefficients[element.Index + 1]
@@ -111,22 +98,21 @@ class ExtractorService(AbstractFemModel):
 
         return results
 
-    def extractPlotInfo(self: 'ExtractorService', plot: Plot, pointsPerDirection: int = 25) -> List[Any]:
-        if plot == ExtractorService.Plot.VTK:
+    def extractPlotInfo(self: 'Extractor', plot: Plot, pointsPerDirection: int = 25) -> List[Any]:
+        if plot == Extractor.Plot.VTK:
             plotInfo = self.__getElementsElectricFieldVector()
-        elif plot == ExtractorService.Plot.CARTESIAN_GRID:
+        elif plot == Extractor.Plot.CARTESIAN_GRID:
             plotInfo = self.__getCartesianGridValues(pointsPerDirection)
-        elif plot == ExtractorService.Plot.ELEMENT_CENTER:
+        elif plot == Extractor.Plot.ELEMENT_CENTER:
             plotInfo = self.__getElementsCenterValue()
         else:
             raise Exception(f'Unexpected plot type entered {plot}')
 
         return plotInfo
 
-    def getFrontierElementsValues(self: 'ExtractorService', offsetName: str, frontierElements: List[int]) -> List[Any]:
-        normalsGroup = self.__getCleanedGroup(f'normals_{offsetName}')
-        
+    def getFrontierElementsValues(self: 'Extractor', frontierElements: List[int]) -> Dict[str, List[Any]]:       
         frontierElementsValues = []
+        normalVectors: List[Any] = []
         for frontierElementIndex in frontierElements:
             coefficients = self.__linearCoefficients[frontierElementIndex]
             
@@ -165,14 +151,12 @@ class ExtractorService(AbstractFemModel):
             
             normalVect.multiply(0.25)
             
-            line = Draft.makeLine(element.InCircle[0], element.InCircle[0] + normalVect)
-            
-            line.ViewObject.EndArrow = True
-            line.ViewObject.ArrowType = u"Arrow"
-            line.ViewObject.ArrowSize = '0.02 mm'
-            
-            normalsGroup.addObject(line)
-            
-        FreeCAD.ActiveDocument.recompute()
-            
-        return frontierElementsValues
+            normalVectors.append({
+                'origin': element.InCircle[0],
+                'destination': element.InCircle[0] + normalVect,
+            })
+
+        return {
+            'frontierElementsValues': frontierElementsValues,
+            'normalVectors': normalVectors
+        }
