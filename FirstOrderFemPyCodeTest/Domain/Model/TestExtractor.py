@@ -1,13 +1,13 @@
 from FirstOrderFemPyCode.Data.DataRepository import DataRepository
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 from FirstOrderFemPyCodeTest.TestAbstractSimulation import TestAbstractSimulation
-from FirstOrderFemPyCode.Data.ExtractorService import ExtractorService
+from FirstOrderFemPyCode.Domain.Model.Extractor import Extractor
 from FirstOrderFemPyCodeTest.MockCapacitorSimulation.capacitor import frontierElementsForCharge
 
-class TestExtractorService(TestAbstractSimulation):
+class TestExtractor(TestAbstractSimulation):
     def testExtractCenterElementsPlotInfoAndChargeForPlainPlatesCapacitor(self) -> None:
-        extractor = ExtractorService(self._mesh, self._nodeVoltages)
-        info = extractor.extractPlotInfo(plot=ExtractorService.Plot.ELEMENT_CENTER)
+        extractor = Extractor(self._mesh, self._nodeVoltages)
+        info = extractor.extractPlotInfo(plot=Extractor.Plot.ELEMENT_CENTER)
         extractedInfo = extractor.getFrontierElementsValues(frontierElementsForCharge)
 
         self.assertEquals(4.4270938896091334e-11, sum([values['charge'] for values in extractedInfo['frontierElementsValues']]))
@@ -16,7 +16,7 @@ class TestExtractorService(TestAbstractSimulation):
         repository = DataRepository()
         simulationDescription = SimulationDescription()
         simulationDescription.mesh = self._mesh
-        simulationDescription.path = TestExtractorService.PATH
+        simulationDescription.path = TestExtractor.PATH
         
         repository.setSimulationInformation(simulationDescription, self._nodeVoltages)
         

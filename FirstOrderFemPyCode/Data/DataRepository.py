@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict, List, Optional
 
 import FirstOrderFemPyCode.Framework.Util as Util
-from FirstOrderFemPyCode.Data.ExtractorService import ExtractorService
+from FirstOrderFemPyCode.Domain.Model.Extractor import Extractor
 from FirstOrderFemPyCode.Data.VtkService import VtkService
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsRepositoryInterface import \
     ExtractSimulationResultsRepositoryInterface
@@ -15,7 +15,7 @@ from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationRepositoryInte
 class DataRepository(RunSimulationRepositoryInterface, ExtractSimulationResultsRepositoryInterface):
     __simulationDescription: SimulationDescription
     __nodeVoltages: Dict[int, float]
-    __extractorService: ExtractorService
+    __extractor: Extractor
     __vtkService: VtkService
     
     def __getNodeVoltages(self: 'DataRepository', path: str, fileNameWithExtension: str) -> Dict[int, float]:
@@ -47,23 +47,23 @@ class DataRepository(RunSimulationRepositoryInterface, ExtractSimulationResultsR
         self.__simulationDescription = simulationDescription
         self.__nodeVoltages = nodeVoltages if nodeVoltages else self.__getNodeVoltages(simulationDescription.path, 'solution.json')
         
-        self.__extractorService = ExtractorService(simulationDescription.mesh, self.__nodeVoltages)
+        self.__extractor = Extractor(simulationDescription.mesh, self.__nodeVoltages)
         self.__vtkService = VtkService(self.__simulationDescription)
 
     def extractInfoForVtk(self: 'DataRepository') -> List[Any]:
-        return self.__extractorService.extractPlotInfo(ExtractorService.Plot.VTK)
+        return self.__extractor.extractPlotInfo(Extractor.Plot.VTK)
 
     def extractInfoForPlotElementsCenter(self: 'DataRepository') -> List[Any]:
-        return self.__extractorService.extractPlotInfo(ExtractorService.Plot.ELEMENT_CENTER)
+        return self.__extractor.extractPlotInfo(Extractor.Plot.ELEMENT_CENTER)
         
     def extractInfoForPlotCartesianGrid(self: 'DataRepository') -> List[Any]:
-        return self.__extractorService.extractPlotInfo(ExtractorService.Plot.CARTESIAN_GRID, self.__simulationDescription.exportOptions.pointsPerDirection)
+        return self.__extractor.extractPlotInfo(Extractor.Plot.CARTESIAN_GRID, self.__simulationDescription.exportOptions.pointsPerDirection)
 
     def extractChargeInfo(self: 'DataRepository') -> Dict[str, Dict[str, List[Any]]]:
         frontierInfo: Dict[str, Dict[str, List[Any]]] = {}
         
         for frontierElementsGroupName, elements in self.__simulationDescription.frontierElementsGroups.items():
-            specificFrontierInfo = self.__extractorService.getFrontierElementsValues(elements)
+            specificFrontierInfo = self.__extractor.getFrontierElementsValues(elements)
             
             frontierInfo[frontierElementsGroupName] = {
                 'frontierElementsValues': specificFrontierInfo['frontierElementsValues'],
