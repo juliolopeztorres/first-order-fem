@@ -2,7 +2,7 @@
 <package format="1">
   <name>First Order FEM Python Workbench</name>
   <description>UI Layer to perform simple 2D first order Finite Elements Method simulations</description>
-  <version>0.0.1</version>
+  <version>0.1.0</version>
   <maintainer email="juliolopeztorres@gmail.com">Julio López Torres</maintainer>
   <!-- <license file="LICENSE">LGPL-2</license> -->
   <url type="repository" branch="master">https://github.com/juliolopeztorres/first-order-fem</url>
