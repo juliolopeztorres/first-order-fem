@@ -20,6 +20,14 @@ class TaskPanelSimulationContainerPropertiesViewInterface(ViewInterface):
     def appendText(self, text: str) -> None:
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def disableView(self) -> None:
+        raise NotImplementedError
+        
+    @abc.abstractmethod
+    def enableView(self) -> None:
+        raise NotImplementedError
+
     class Callback(ViewInterface.CallbackInterface):
         @abc.abstractmethod
         def onBtnRunScenarioClicked(self) -> Any:

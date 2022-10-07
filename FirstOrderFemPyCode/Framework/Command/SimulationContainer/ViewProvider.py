@@ -120,6 +120,14 @@ class ViewProvider(
         else:
             PlotResultsUseCase().plot(extractedInfo['plotInfo'])
 
+    def __hideProgressBar(self) -> None:
+        if not self.__progressBar:
+            return
+
+        self.__progressBar.resetText()
+        self.__progressBar.closing()
+        self.__progressBar = None
+
     def getIcon(self) -> str:
         return os.path.join(Util.getModulePath(), "assets", "icons", "analysis.png")
 
@@ -200,8 +208,11 @@ class ViewProvider(
     def onReject(self) -> None:
         if self.__runSimulationThread.isRunning():
             self.__runSimulationThread.terminate()
+
         if self.__runExtractionThread.isRunning():
             self.__runExtractionThread.terminate()
+
+        self.__hideProgressBar()
 
         FreeCAD.ActiveDocument.recompute()
         FreeCADGui.ActiveDocument.resetEdit()
@@ -210,6 +221,12 @@ class ViewProvider(
         pass
 
     def onBtnRunScenarioClicked(self) -> Any:
+        if not self.__view or not self.__exportOptionsView:
+            return
+
+        self.__view.disableView()
+        self.__exportOptionsView.disableView()
+
         self.__progressBar: ProgressBarViewInterface = Container.getView(
             View.PROGRESS_BAR_VIEW, 
             self
@@ -220,9 +237,13 @@ class ViewProvider(
             
         self.__runSimulationThread.start()
         
-        # TODO: Disable UI
-
     def onBtnRunExportClicked(self) -> Any:
+        if not self.__view or not self.__exportOptionsView:
+            return
+
+        self.__view.disableView()
+        self.__exportOptionsView.disableView()
+        
         self.__progressBar: ProgressBarViewInterface = Container.getView(
             View.PROGRESS_BAR_VIEW, 
             self
@@ -233,8 +254,6 @@ class ViewProvider(
             
         self.__runExtractionThread.nodeVoltages = self.__lastSolution
         self.__runExtractionThread.start()
-
-        # TODO: Disable UI
 
     def onInputChanged(self, input: str, value: Union[RenderOptionViewLabel, MatPlotLibTypeViewLabel, int]) -> None:
         TaskPanelExportOptionsPropertiesCallback.onInputChanged(self, input, value)
@@ -250,18 +269,21 @@ class ViewProvider(
         if self.__progressBar:
             self.__progressBar.showText(msg)
             
-        # TODO: Enable UI
+        if not self.__view or not self.__exportOptionsView:
+            return
+
+        self.__view.enableView()
+        self.__exportOptionsView.enableView()
 
     def onRunSimulationThreadFinished(self, status: bool, threadOutput: ThreadOutput) -> None:
         self.__runSimulationThread.terminate()
-          
-        # TODO: Enable UI
+
+        if self.__view and self.__exportOptionsView:
+            self.__view.enableView()
+            self.__exportOptionsView.enableView()
         
         if not status:
-            if self.__progressBar:
-                self.__progressBar.resetText()
-                self.__progressBar.closing()
-                self.__progressBar = None
+            self.__hideProgressBar()
 
             return
 
@@ -277,21 +299,17 @@ class ViewProvider(
 
         self.__showNormalsAndPlots(simulationOutput['simulationDescription'], simulationOutput['extractedInfo'])
 
-        if self.__progressBar:
-            self.__progressBar.resetText()
-            self.__progressBar.closing()
-            self.__progressBar = None
+        self.__hideProgressBar()
 
     def onRunExtractionThreadFinished(self, status: bool, threadOutput: ThreadOutput) -> None:
         self.__runExtractionThread.terminate()
           
-        # TODO: Enable UI
-        
+        if self.__view and self.__exportOptionsView:
+            self.__view.enableView()
+            self.__exportOptionsView.enableView()
+
         if not status:
-            if self.__progressBar:
-                self.__progressBar.resetText()
-                self.__progressBar.closing()
-                self.__progressBar = None
+            self.__hideProgressBar()
 
             return
 
@@ -303,11 +321,7 @@ class ViewProvider(
 
         self.__showNormalsAndPlots(simulationOutput['simulationDescription'], simulationOutput['extractedInfo'])
 
-        if self.__progressBar:
-            self.__progressBar.resetText()
-            self.__progressBar.closing()
-            self.__progressBar = None
-
+        self.__hideProgressBar()
 
     def updateProgress(self, progress: int) -> None:
         if self.__progressBar:

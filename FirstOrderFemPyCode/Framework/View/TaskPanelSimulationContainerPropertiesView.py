@@ -61,15 +61,26 @@ class TaskPanelSimulationContainerPropertiesView(TaskPanelSimulationContainerPro
     def closing(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
         self.__callback.onClose()
 
-    def getExportOptionsView(self) -> Any:
+    def getExportOptionsView(self: 'TaskPanelSimulationContainerPropertiesView') -> Any:
         return self.__exportOptionsView
 
-    def setText(self, text: str) -> None:
+    def setText(self: 'TaskPanelSimulationContainerPropertiesView', text: str) -> None:
         self.form.textReport.setPlainText(text)
         self.form.textReport.moveCursor(QtGui.QTextCursor.End)
 
-    def appendText(self, text: str) -> None:
+    def appendText(self: 'TaskPanelSimulationContainerPropertiesView', text: str) -> None:
         self.form.textReport.insertPlainText(text)
 
-    def resetText(self) -> None:
+    def resetText(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
         self.form.textReport.clear()
+
+    def __enableDisableView(self: 'TaskPanelSimulationContainerPropertiesView', enabled: bool) -> None:
+        self.form.btnRunScenario.setEnabled(enabled)
+        self.form.btnRunExport.setEnabled(enabled)
+        self.form.textReport.setEnabled(enabled)
+
+    def disableView(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
+        self.__enableDisableView(False)
+        
+    def enableView(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
+        self.__enableDisableView(True)
