@@ -3,7 +3,8 @@ from FirstOrderFemPyCode.Data.DataRepository import DataRepository
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
 from FirstOrderFemPyCode.Domain.Model.ExportOptions import RenderOption
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
-from FirstOrderFemPyCode.Framework.Command.SimulationContainer.Thread import Thread, ThreadOutput
+from FirstOrderFemPyCode.Framework.Command.SimulationContainer.RunExtractionThread import RunExtractionThread
+from FirstOrderFemPyCode.Framework.Command.SimulationContainer.RunSimulationThread import RunSimulationThread, ThreadOutput
 from FirstOrderFemPyCode.Framework.View.ProgressBarViewInterface import ProgressBarViewInterface
 import FreeCAD
 
@@ -46,7 +47,8 @@ class ViewProvider(
     __lastSolution: Optional[Dict[int, float]] = None
 
     __progressBar: Optional[ProgressBarViewInterface] = None
-    thread: Thread = Thread()
+    __runSimulationThread: RunSimulationThread = RunSimulationThread()
+    __runExtractionThread: RunExtractionThread = RunExtractionThread()
 
     def __init__(self, vobj: ViewObject):
         vobj.Proxy = self
@@ -127,14 +129,22 @@ class ViewProvider(
         self.__extractSimulationResultsUseCase = Container.getService(Service.EXTRACT_SIMULATION_RESULTS_USE_CASE)
         self.__dataRepository = Container.getService(Service.DATA_REPOSITORY)
 
-        self.thread.signals.error.connect(self.threadError)
-        self.thread.signals.finished.connect(self.threadFinished)
-        self.thread.signals.status.connect(self.threadStatus)
-        self.thread.signals.update.connect(self.updateProgress)
+        self.__runSimulationThread.signals.error.connect(self.threadError)
+        self.__runSimulationThread.signals.finished.connect(self.onRunSimulationThreadFinished)
+        self.__runSimulationThread.signals.status.connect(self.threadStatus)
+        self.__runSimulationThread.signals.update.connect(self.updateProgress)
 
-        self.thread.runSimulationUseCase = self.__runSimulationUseCase
-        self.thread.extractSimulationResultsUseCase = self.__extractSimulationResultsUseCase
-        self.thread.object = self.__viewObject.Object
+        self.__runSimulationThread.runSimulationUseCase = self.__runSimulationUseCase
+        self.__runSimulationThread.extractSimulationResultsUseCase = self.__extractSimulationResultsUseCase
+        self.__runSimulationThread.object = self.__viewObject.Object
+        
+        self.__runExtractionThread.signals.error.connect(self.threadError)
+        self.__runExtractionThread.signals.finished.connect(self.onRunExtractionThreadFinished)
+        self.__runExtractionThread.signals.status.connect(self.threadStatus)
+        self.__runExtractionThread.signals.update.connect(self.updateProgress)
+        
+        self.__runExtractionThread.extractSimulationResultsUseCase = self.__extractSimulationResultsUseCase
+        self.__runExtractionThread.object = self.__viewObject.Object
 
     def doubleClicked(self, vobj: ViewObject) -> bool:
         doc = FreeCADGui.getDocument(vobj.Object.Document)
@@ -188,8 +198,10 @@ class ViewProvider(
         FreeCADGui.ActiveDocument.resetEdit()
 
     def onReject(self) -> None:
-        if self.thread.isRunning():
-            self.thread.terminate()
+        if self.__runSimulationThread.isRunning():
+            self.__runSimulationThread.terminate()
+        if self.__runExtractionThread.isRunning():
+            self.__runExtractionThread.terminate()
 
         FreeCAD.ActiveDocument.recompute()
         FreeCADGui.ActiveDocument.resetEdit()
@@ -206,25 +218,23 @@ class ViewProvider(
         if self.__progressBar:
             self.__progressBar.show()
             
-        self.thread.start()
+        self.__runSimulationThread.start()
         
         # TODO: Disable UI
 
     def onBtnRunExportClicked(self) -> Any:
-        if not self.__view:
-            return
-
-        self.__view.resetText()
-
-        simulationDescription = SimulationDescriptionMapper.map(
-            self.__viewObject.Object, 
-            Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
+        self.__progressBar: ProgressBarViewInterface = Container.getView(
+            View.PROGRESS_BAR_VIEW, 
+            self
         )
 
-        self.__showNormalsAndPlots(
-            simulationDescription, 
-            self.__extractSimulationResultsUseCase.extract(simulationDescription, self.__lastSolution)
-        )
+        if self.__progressBar:
+            self.__progressBar.show()
+            
+        self.__runExtractionThread.nodeVoltages = self.__lastSolution
+        self.__runExtractionThread.start()
+
+        # TODO: Disable UI
 
     def onInputChanged(self, input: str, value: Union[RenderOptionViewLabel, MatPlotLibTypeViewLabel, int]) -> None:
         TaskPanelExportOptionsPropertiesCallback.onInputChanged(self, input, value)
@@ -242,8 +252,8 @@ class ViewProvider(
             
         # TODO: Enable UI
 
-    def threadFinished(self, status: bool, threadOutput: ThreadOutput) -> None:
-        self.thread.terminate()
+    def onRunSimulationThreadFinished(self, status: bool, threadOutput: ThreadOutput) -> None:
+        self.__runSimulationThread.terminate()
           
         # TODO: Enable UI
         
@@ -271,6 +281,33 @@ class ViewProvider(
             self.__progressBar.resetText()
             self.__progressBar.closing()
             self.__progressBar = None
+
+    def onRunExtractionThreadFinished(self, status: bool, threadOutput: ThreadOutput) -> None:
+        self.__runExtractionThread.terminate()
+          
+        # TODO: Enable UI
+        
+        if not status:
+            if self.__progressBar:
+                self.__progressBar.resetText()
+                self.__progressBar.closing()
+                self.__progressBar = None
+
+            return
+
+        simulationOutput = threadOutput.simulationOutput
+        if not self.__view:
+            return
+        
+        self.__view.resetText()
+
+        self.__showNormalsAndPlots(simulationOutput['simulationDescription'], simulationOutput['extractedInfo'])
+
+        if self.__progressBar:
+            self.__progressBar.resetText()
+            self.__progressBar.closing()
+            self.__progressBar = None
+
 
     def updateProgress(self, progress: int) -> None:
         if self.__progressBar:

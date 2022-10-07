@@ -26,7 +26,7 @@ class Signals(QObject):
     update = QtCore.Signal(int)
 
 
-class Thread(QThread):
+class RunSimulationThread(QThread):
     signals: Signals = Signals()
     runSimulationUseCase: RunSimulationUseCase
     extractSimulationResultsUseCase: ExtractSimulationResultsUseCase
@@ -40,28 +40,32 @@ class Thread(QThread):
         self.signals.update.emit(progress)
 
     def __runSimulationScenario(self) -> Dict[str, Any]:
-        self.updateStatus(5, FreeCAD.Qt.translate("SimulationContainer", "THREAD_MAPPING_SIMULATION_DATA"))
+        self.updateStatus(5, FreeCAD.Qt.translate("SimulationContainer", "RUN_SIMULATION_THREAD_MAPPING_SIMULATION_DATA"))
         
         simulationDescription = SimulationDescriptionMapper.map(
             self.object, 
             Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
         )
         
-        self.updateStatus(20, FreeCAD.Qt.translate("SimulationContainer", "THREAD_CLEAN_SIMULATION_FOLDER"))
+        self.updateStatus(20, FreeCAD.Qt.translate("SimulationContainer", "RUN_SIMULATION_THREAD_CLEAN_SIMULATION_FOLDER"))
         
         self.__cleanAndCreateSimulationFolder(simulationDescription.path)
         
-        self.updateStatus(40, FreeCAD.Qt.translate("SimulationContainer", "THREAD_RUNNING_SIMULATION"))
+        self.updateStatus(40, FreeCAD.Qt.translate("SimulationContainer", "RUN_SIMULATION_THREAD_RUNNING_SIMULATION"))
 
         simulation = self.runSimulationUseCase.run(simulationDescription)
 
-        self.updateStatus(50, 'Extracting relevant output info...')
+        self.updateStatus(50, FreeCAD.Qt.translate("SimulationContainer", "RUN_SIMULATION_THREAD_EXTRACTING_INFORMATION"))
+        # self.updateStatus(50, 'Extracting relevant output info...')
 
         extractedInfo = self.extractSimulationResultsUseCase.extract(simulationDescription, simulation.nodeVoltages)
         
-        self.updateStatus(60, 'Opening simulation output folder...')
+        self.updateStatus(60, FreeCAD.Qt.translate("SimulationContainer", "RUN_SIMULATION_THREAD_OPENING_OUTPUT_FOLDER"))
+        # self.updateStatus(60, 'Opening simulation output folder...')
 
         Util.openFileManager(simulationDescription.path)
+
+        self.updateStatus(80, FreeCAD.Qt.translate("SimulationContainer", "RUN_SIMULATION_THREAD_RETURNING"))
 
         return {
             'energy': simulation.energy,
