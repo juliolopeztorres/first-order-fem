@@ -181,6 +181,18 @@
         <source>TOOLTIP</source>
     </message>
     <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_MAPPING_SIMULATION_DATA</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_CLEAN_SIMULATION_FOLDER</source>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_RUNNING_SIMULATION</source>
+    </message>
+    <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
         <source>CHARGE_ON_FRONTIER_OUTPUT</source>
     </message>

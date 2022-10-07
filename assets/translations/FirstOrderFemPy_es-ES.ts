@@ -217,6 +217,21 @@
         <translation>Agrega un nuevo objeto simulación al documento activo</translation>
     </message>
     <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_MAPPING_SIMULATION_DATA</source>
+        <translation>Recuperando información de entrada para simulación...</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_CLEAN_SIMULATION_FOLDER</source>
+        <translation>Limpiando carpeta de salida de simulación...</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_RUNNING_SIMULATION</source>
+        <translation>Ejecutando la simulación...</translation>
+    </message>
+    <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
         <source>CHARGE_ON_FRONTIER_OUTPUT</source>
         <translation>Carga total en frontera</translation>

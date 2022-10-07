@@ -217,6 +217,21 @@
         <translation>Attach a new simulation object to the active document</translation>
     </message>
     <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_MAPPING_SIMULATION_DATA</source>
+        <translation>Mapping simulation entry data...</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_CLEAN_SIMULATION_FOLDER</source>
+        <translation>Cleaning simulation output folder...</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
+        <source>THREAD_RUNNING_SIMULATION</source>
+        <translation>Running simulation...</translation>
+    </message>
+    <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
         <source>CHARGE_ON_FRONTIER_OUTPUT</source>
         <translation>Total charge on frontier</translation>

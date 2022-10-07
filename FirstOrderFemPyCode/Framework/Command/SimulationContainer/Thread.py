@@ -39,18 +39,18 @@ class Thread(QThread):
         self.signals.update.emit(progress)
 
     def __runSimulationScenario(self) -> Dict[str, Any]:
-        self.updateStatus(5, 'Mapping simulation entry data...')
+        self.updateStatus(5, FreeCAD.Qt.translate("SimulationContainer", "THREAD_MAPPING_SIMULATION_DATA"))
         
         simulationDescription = SimulationDescriptionMapper.map(
             self.object, 
             Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
         )
         
-        self.updateStatus(20, 'Cleaning simulation output folder...')
+        self.updateStatus(20, FreeCAD.Qt.translate("SimulationContainer", "THREAD_CLEAN_SIMULATION_FOLDER"))
         
         self.__cleanAndCreateSimulationFolder(simulationDescription.path)
         
-        self.updateStatus(40, 'Running simulation...')
+        self.updateStatus(40, FreeCAD.Qt.translate("SimulationContainer", "THREAD_RUNNING_SIMULATION"))
 
         simulation = self.runSimulationUseCase.run(simulationDescription)
 
