@@ -1,5 +1,7 @@
 import os
+from FirstOrderFemPyCode.Data.DataRepository import DataRepository
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
+from FirstOrderFemPyCode.Domain.Model.ExportOptions import RenderOption
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 from FirstOrderFemPyCode.Framework.Command.SimulationContainer.Thread import Thread, ThreadOutput
 from FirstOrderFemPyCode.Framework.View.ProgressBarViewInterface import ProgressBarViewInterface
@@ -22,7 +24,8 @@ from FirstOrderFemPyCode.Framework.Mapper.SimulationDescriptionMapper import Sim
 from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationUseCase import RunSimulationUseCase
 from FirstOrderFemPyCode.Framework.Container import Container
 import FirstOrderFemPyCode.Framework.Util as Util
-from pathlib import Path
+from FirstOrderFemPyCode.Domain.PlotResultsUseCase.PlotResultsUseCase import PlotResultsUseCase
+import Draft
 
 class ViewProvider(
     ViewProviderInterface, 
@@ -36,6 +39,7 @@ class ViewProvider(
     
     __runSimulationUseCase: RunSimulationUseCase
     __extractSimulationResultsUseCase: ExtractSimulationResultsUseCase
+    __dataRepository: DataRepository
     
     __exportOptionsDataObject: Optional[ExportOptionsViewObject.ExportOptionsDataContainer] = None
     
@@ -74,23 +78,45 @@ class ViewProvider(
             self._exportOptionsModel
         )
 
-    def __cleanAndCreateSimulationFolder(self, path: str) -> None:
-        Util.removeFolder(path)
-        Path(path).mkdir(exist_ok=True, parents=True)
+    def __showFrontierElementNormals(self, chargeInfo: Dict[str, Dict[str, List[Any]]]) -> None:
+        for offsetName, frontierInfo in chargeInfo.items():
+            lines: List[Any] = []
+            for vectorInfo in frontierInfo['normalVectors']:
+                line = Draft.makeLine(vectorInfo['origin'], vectorInfo['destination'])
+                
+                line.ViewObject.EndArrow = True
+                line.ViewObject.ArrowType = u"Arrow"
+                line.ViewObject.ArrowSize = '0.02 mm'
+                
+                lines.append(line)
 
-    def __showChargeInfo(self, chargeInfo: Dict[str, List[Any]]) -> None:
+            Util.getCleanedGroup(f'normals_{offsetName}').addObjects(lines)
+        
+        FreeCAD.ActiveDocument.recompute()
+
+    def __showChargeInfo(self, chargeInfo: Dict[str, Dict[str, List[Any]]]) -> None:
         chargeOnFrontierText = FreeCAD.Qt.translate("SimulationContainer", "CHARGE_ON_FRONTIER_OUTPUT")
         
         if not self.__view:
             return
         
         chargeInfoParsed: List[str] = []
-        for frontierElementsGroupName, frontierElectricFieldVector in chargeInfo.items():
-            totalCharge = sum([values['charge'] for values in frontierElectricFieldVector])
+        for frontierElementsGroupName, frontierInfo in chargeInfo.items():
+            totalCharge = sum([values['charge'] for values in frontierInfo['frontierElementsValues']])
 
             chargeInfoParsed.append(f'{chargeOnFrontierText} {frontierElementsGroupName}: {totalCharge}C\n\n')
 
         self.__view.appendText(''.join(chargeInfoParsed))
+
+    def __showNormalsAndPlots(self, simulationDescription: SimulationDescription, extractedInfo: Dict[str, Any]) -> None:
+        self.__showChargeInfo(extractedInfo['chargeInfo'])
+        self.__showFrontierElementNormals(extractedInfo['chargeInfo'])
+
+        # Show results to the user
+        if simulationDescription.exportOptions.renderOption == RenderOption.VTK:
+            self.__dataRepository.exportToVtk(extractedInfo['plotInfo'])
+        else:
+            PlotResultsUseCase().plot(extractedInfo['plotInfo'])
 
     def getIcon(self) -> str:
         return os.path.join(Util.getModulePath(), "assets", "icons", "analysis.png")
@@ -99,11 +125,16 @@ class ViewProvider(
         self.__viewObject = vobj
         self.__runSimulationUseCase = Container.getService(Service.RUN_SIMULATION_USE_CASE)
         self.__extractSimulationResultsUseCase = Container.getService(Service.EXTRACT_SIMULATION_RESULTS_USE_CASE)
+        self.__dataRepository = Container.getService(Service.DATA_REPOSITORY)
 
         self.thread.signals.error.connect(self.threadError)
         self.thread.signals.finished.connect(self.threadFinished)
         self.thread.signals.status.connect(self.threadStatus)
         self.thread.signals.update.connect(self.updateProgress)
+
+        self.thread.runSimulationUseCase = self.__runSimulationUseCase
+        self.thread.extractSimulationResultsUseCase = self.__extractSimulationResultsUseCase
+        self.thread.object = self.__viewObject.Object
 
     def doubleClicked(self, vobj: ViewObject) -> bool:
         doc = FreeCADGui.getDocument(vobj.Object.Document)
@@ -157,6 +188,9 @@ class ViewProvider(
         FreeCADGui.ActiveDocument.resetEdit()
 
     def onReject(self) -> None:
+        if self.thread.isRunning():
+            self.thread.terminate()
+
         FreeCAD.ActiveDocument.recompute()
         FreeCADGui.ActiveDocument.resetEdit()
 
@@ -172,9 +206,6 @@ class ViewProvider(
         if self.__progressBar:
             self.__progressBar.show()
             
-            
-        self.thread.runSimulationUseCase = self.__runSimulationUseCase
-        self.thread.object = self.__viewObject.Object
         self.thread.start()
         
         # TODO: Disable UI
@@ -183,16 +214,17 @@ class ViewProvider(
         if not self.__view:
             return
 
-        chargeInfo = self.__extractSimulationResultsUseCase.extract(
-            SimulationDescriptionMapper.map(
-                self.__viewObject.Object, 
-                Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
-            ), 
-            self.__lastSolution
+        self.__view.resetText()
+
+        simulationDescription = SimulationDescriptionMapper.map(
+            self.__viewObject.Object, 
+            Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
         )
 
-        self.__view.resetText()
-        self.__showChargeInfo(chargeInfo)
+        self.__showNormalsAndPlots(
+            simulationDescription, 
+            self.__extractSimulationResultsUseCase.extract(simulationDescription, self.__lastSolution)
+        )
 
     def onInputChanged(self, input: str, value: Union[RenderOptionViewLabel, MatPlotLibTypeViewLabel, int]) -> None:
         TaskPanelExportOptionsPropertiesCallback.onInputChanged(self, input, value)
@@ -223,16 +255,9 @@ class ViewProvider(
 
             return
 
-        self.threadStatus('Opening simulation output folder...')
-        self.updateProgress(50)
-
         simulationOutput = threadOutput.simulationOutput
-        simulationDescription: SimulationDescription = simulationOutput['simulationDescription']
-    
         self.__lastSolution = simulationOutput['nodeVoltages']
         
-        Util.openFileManager(simulationDescription.path)
-
         if not self.__view:
             return
         
@@ -240,13 +265,8 @@ class ViewProvider(
         energyText = FreeCAD.Qt.translate("SimulationContainer", "ENERGY_OUTPUT")
         self.__view.setText(f'{energyText}:{simulationOutput["energy"]}J\n\n')
 
-        self.threadStatus('Extracting relevant output info...')
-        self.updateProgress(60)
+        self.__showNormalsAndPlots(simulationOutput['simulationDescription'], simulationOutput['extractedInfo'])
 
-        chargeInfo = self.__extractSimulationResultsUseCase.extract(simulationDescription, self.__lastSolution)
-
-        self.__showChargeInfo(chargeInfo)
-        
         if self.__progressBar:
             self.__progressBar.resetText()
             self.__progressBar.closing()

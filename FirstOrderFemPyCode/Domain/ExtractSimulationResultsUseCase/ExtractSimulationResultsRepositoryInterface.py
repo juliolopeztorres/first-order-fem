@@ -24,7 +24,7 @@ class ExtractSimulationResultsRepositoryInterface:
         raise NotImplementedError
     
     @abc.abstractmethod
-    def extractChargeInfo(self: 'ExtractSimulationResultsRepositoryInterface') -> Dict[str, List[Any]]:
+    def extractChargeInfo(self: 'ExtractSimulationResultsRepositoryInterface') -> Dict[str, Dict[str, List[Any]]]:
         raise NotImplementedError
     
     @abc.abstractmethod
@@ -32,7 +32,7 @@ class ExtractSimulationResultsRepositoryInterface:
         raise NotImplementedError
     
     @abc.abstractmethod
-    def saveChargeInfoToFile(self: 'ExtractSimulationResultsRepositoryInterface', chargeInfo: Dict[str, List[Any]]) -> None:
+    def saveChargeInfoToFile(self: 'ExtractSimulationResultsRepositoryInterface', chargeInfo: Dict[str, Dict[str, List[Any]]]) -> None:
         raise NotImplementedError
     
     @abc.abstractmethod

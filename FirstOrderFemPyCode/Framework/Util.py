@@ -172,3 +172,14 @@ def getDataObjectsWithViewObjectProxyInstance(objects: List[Any], className: Typ
 
 def removeObjectFromActiveDocument(name: str) -> None:
     FreeCAD.ActiveDocument.removeObject(name)
+
+def getCleanedGroup(name: str) -> Any:
+    try:
+        group = getObjectInDocumentByName(name)
+        group.removeObjectsFromDocument()
+
+        removeObjectFromActiveDocument(name)
+    except:
+        pass
+
+    return addAndGetGroupInDocument(name)

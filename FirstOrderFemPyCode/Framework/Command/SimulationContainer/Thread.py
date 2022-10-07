@@ -1,4 +1,5 @@
 from typing import Any, Dict
+from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
 from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationUseCase import RunSimulationUseCase
 from FirstOrderFemPyCode.Framework.Command.SimulationContainer.ViewObject import ViewObject
 from FirstOrderFemPyCode.Framework.Mapper.SimulationDescriptionMapper import SimulationDescriptionMapper
@@ -26,9 +27,9 @@ class Signals(QObject):
 
 
 class Thread(QThread):
-
     signals: Signals = Signals()
     runSimulationUseCase: RunSimulationUseCase
+    extractSimulationResultsUseCase: ExtractSimulationResultsUseCase
     object: ViewObject.SimulationContainerDataContainer
 
     def __cleanAndCreateSimulationFolder(self, path: str) -> None:
@@ -54,10 +55,19 @@ class Thread(QThread):
 
         simulation = self.runSimulationUseCase.run(simulationDescription)
 
+        self.updateStatus(50, 'Extracting relevant output info...')
+
+        extractedInfo = self.extractSimulationResultsUseCase.extract(simulationDescription, simulation.nodeVoltages)
+        
+        self.updateStatus(60, 'Opening simulation output folder...')
+
+        Util.openFileManager(simulationDescription.path)
+
         return {
             'energy': simulation.energy,
             'nodeVoltages': simulation.nodeVoltages,
             'simulationDescription': simulationDescription,
+            'extractedInfo': extractedInfo
         }
 
     def run(self) -> None:

@@ -6,9 +6,7 @@ from FirstOrderFemPyCode.Domain.Model.Mesh import Mesh
 from FirstOrderFemPyCode.Domain.Model import EPSILON_0, MAP_INDICES
 import numpy as np
 
-import FirstOrderFemPyCode.Framework.Util as Util
 import FreeCAD
-import Draft
 
 class ExtractorService(AbstractFemModel):
     @unique
@@ -87,17 +85,6 @@ class ExtractorService(AbstractFemModel):
             
         return results
 
-    def __getCleanedGroup(self: 'ExtractorService', name: str) -> Any:
-        try:
-            group = Util.getObjectInDocumentByName(name)
-            group.removeObjectsFromDocument()
-
-            Util.removeObjectFromActiveDocument(name)
-        except:
-            pass
-
-        return Util.addAndGetGroupInDocument(name)
-
     def __getElementsElectricFieldVector(self: 'ExtractorService') -> List[Any]:
         results = []
         for element in self._elements:
@@ -123,9 +110,9 @@ class ExtractorService(AbstractFemModel):
 
         return plotInfo
 
-    def getFrontierElementsValues(self: 'ExtractorService', offsetName: str, frontierElements: List[int]) -> List[Any]:       
+    def getFrontierElementsValues(self: 'ExtractorService', frontierElements: List[int]) -> Dict[str, List[Any]]:       
         frontierElementsValues = []
-        lines: List[Any] = []
+        normalVectors: List[Any] = []
         for frontierElementIndex in frontierElements:
             coefficients = self.__linearCoefficients[frontierElementIndex]
             
@@ -164,17 +151,12 @@ class ExtractorService(AbstractFemModel):
             
             normalVect.multiply(0.25)
             
-            line = Draft.makeLine(element.InCircle[0], element.InCircle[0] + normalVect)
-            
-            line.ViewObject.EndArrow = True
-            line.ViewObject.ArrowType = u"Arrow"
-            line.ViewObject.ArrowSize = '0.02 mm'
-            
-            lines.append(line)
+            normalVectors.append({
+                'origin': element.InCircle[0],
+                'destination': element.InCircle[0] + normalVect,
+            })
 
-        normalsGroup = self.__getCleanedGroup(f'normals_{offsetName}')
-        normalsGroup.addObjects(lines)
-
-        FreeCAD.ActiveDocument.recompute()
-            
-        return frontierElementsValues
+        return {
+            'frontierElementsValues': frontierElementsValues,
+            'normalVectors': normalVectors
+        }

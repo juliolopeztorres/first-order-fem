@@ -8,9 +8,9 @@ class TestExtractorService(TestAbstractSimulation):
     def testExtractCenterElementsPlotInfoAndChargeForPlainPlatesCapacitor(self) -> None:
         extractor = ExtractorService(self._mesh, self._nodeVoltages)
         info = extractor.extractPlotInfo(plot=ExtractorService.Plot.ELEMENT_CENTER)
-        chargeInfo = extractor.getFrontierElementsValues('1V', frontierElementsForCharge)
+        extractedInfo = extractor.getFrontierElementsValues(frontierElementsForCharge)
 
-        self.assertEquals(4.4270938896091334e-11, sum([values['charge'] for values in chargeInfo]))
+        self.assertEquals(4.4270938896091334e-11, sum([values['charge'] for values in extractedInfo['frontierElementsValues']]))
         
         # TODO: I/O could be tested separately
         repository = DataRepository()
@@ -21,7 +21,7 @@ class TestExtractorService(TestAbstractSimulation):
         repository.setSimulationInformation(simulationDescription, self._nodeVoltages)
         
         repository.saveInfoToFile(info)
-        repository.saveChargeInfoToFile({'1V': chargeInfo})
+        repository.saveChargeInfoToFile({'1V': extractedInfo})
 
         pairs = [
             (

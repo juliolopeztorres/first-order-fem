@@ -59,20 +59,25 @@ class DataRepository(RunSimulationRepositoryInterface, ExtractSimulationResultsR
     def extractInfoForPlotCartesianGrid(self: 'DataRepository') -> List[Any]:
         return self.__extractorService.extractPlotInfo(ExtractorService.Plot.CARTESIAN_GRID, self.__simulationDescription.exportOptions.pointsPerDirection)
 
-    def extractChargeInfo(self: 'DataRepository') -> Dict[str, List[Any]]:
-        frontierInfo: Dict[str, List[Any]] = {}
+    def extractChargeInfo(self: 'DataRepository') -> Dict[str, Dict[str, List[Any]]]:
+        frontierInfo: Dict[str, Dict[str, List[Any]]] = {}
         
         for frontierElementsGroupName, elements in self.__simulationDescription.frontierElementsGroups.items():
-            frontierInfo[frontierElementsGroupName] = self.__extractorService.getFrontierElementsValues(frontierElementsGroupName, elements)
+            specificFrontierInfo = self.__extractorService.getFrontierElementsValues(elements)
+            
+            frontierInfo[frontierElementsGroupName] = {
+                'frontierElementsValues': specificFrontierInfo['frontierElementsValues'],
+                'normalVectors': specificFrontierInfo['normalVectors']
+            }
         
         return frontierInfo
 
     def saveInfoToFile(self: 'DataRepository', info: List[Any]) -> None:
         self.__writeJsonContent(self.__simulationDescription.path, 'plot-info.json', info)
     
-    def saveChargeInfoToFile(self: 'DataRepository', chargeInfo: Dict[str, List[Any]]) -> None:
-        for offsetName, frontierElectricFieldVector in chargeInfo.items():
-            self.__writeJsonContent(self.__simulationDescription.path, f'relevant-electric-field-vector_{offsetName}.json', frontierElectricFieldVector)
+    def saveChargeInfoToFile(self: 'DataRepository', chargeInfo: Dict[str, Dict[str, List[Any]]]) -> None:
+        for offsetName, frontierInfo in chargeInfo.items():
+            self.__writeJsonContent(self.__simulationDescription.path, f'relevant-electric-field-vector_{offsetName}.json', frontierInfo['frontierElementsValues'])
     
     def exportToVtk(self: 'DataRepository', info: List[Any]) -> None:
         self.__vtkService.export(self.__nodeVoltages, info)
