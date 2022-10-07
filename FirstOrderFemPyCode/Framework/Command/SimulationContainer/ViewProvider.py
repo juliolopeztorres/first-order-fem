@@ -144,7 +144,6 @@ class ViewProvider(
 
         self.__runSimulationThread.runSimulationUseCase = self.__runSimulationUseCase
         self.__runSimulationThread.extractSimulationResultsUseCase = self.__extractSimulationResultsUseCase
-        self.__runSimulationThread.object = self.__viewObject.Object
         
         self.__runExtractionThread.signals.error.connect(self.threadError)
         self.__runExtractionThread.signals.finished.connect(self.onRunExtractionThreadFinished)
@@ -152,7 +151,6 @@ class ViewProvider(
         self.__runExtractionThread.signals.update.connect(self.updateProgress)
         
         self.__runExtractionThread.extractSimulationResultsUseCase = self.__extractSimulationResultsUseCase
-        self.__runExtractionThread.object = self.__viewObject.Object
 
     def doubleClicked(self, vobj: ViewObject) -> bool:
         doc = FreeCADGui.getDocument(vobj.Object.Document)
@@ -234,7 +232,8 @@ class ViewProvider(
         
         if self.__progressBar:
             self.__progressBar.show()
-            
+
+        self.__runSimulationThread.object = self.__viewObject.Object
         self.__runSimulationThread.start()
         
     def onBtnRunExportClicked(self) -> Any:
@@ -251,7 +250,8 @@ class ViewProvider(
 
         if self.__progressBar:
             self.__progressBar.show()
-            
+
+        self.__runExtractionThread.object = self.__viewObject.Object
         self.__runExtractionThread.nodeVoltages = self.__lastSolution
         self.__runExtractionThread.start()
 
