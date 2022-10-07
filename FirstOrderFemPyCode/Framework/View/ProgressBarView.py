@@ -26,9 +26,13 @@ class ProgressBarView(ProgressBarViewInterface):
         self.__view = uiLoaderService.load("ProgressBar")
         self.__view.btnCancel.clicked.connect(self.__onBtnCancelClicked)
 
-        # self.__view.setWindowFlag(QtCore.Qt.WindowCloseButtonHint, False)
         self.__view.setWindowFlags(
-            self.__view.windowFlags() & ~QtCore.Qt.WindowCloseButtonHint)
+            self.__view.windowFlags() & ~QtCore.Qt.WindowCloseButtonHint
+        )
+
+        self.__view.setWindowFlags(
+            self.__view.windowFlags() | QtCore.Qt.WindowStaysOnTopHint
+        )
 
         self.__callback = callback
 
