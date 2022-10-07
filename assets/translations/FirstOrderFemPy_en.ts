@@ -217,19 +217,44 @@
         <translation>Attach a new simulation object to the active document</translation>
     </message>
     <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunExtractionThread.py"/>
+        <source>RUN_EXTRACTION_THREAD_MAPPING_SIMULATION_DATA</source>
+        <translation>Mapping simulation entry data...</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunExtractionThread.py"/>
+        <source>RUN_EXTRACTION_THREAD_EXTRACTING_INFO</source>
+        <translation>Extracting relevant output info...</translation>
+    </message>
+    <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
-        <source>THREAD_MAPPING_SIMULATION_DATA</source>
+        <source>RUN_SIMULATION_THREAD_MAPPING_SIMULATION_DATA</source>
         <translation>Mapping simulation entry data...</translation>
     </message>
     <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
-        <source>THREAD_CLEAN_SIMULATION_FOLDER</source>
+        <source>RUN_SIMULATION_THREAD_CLEAN_SIMULATION_FOLDER</source>
         <translation>Cleaning simulation output folder...</translation>
     </message>
     <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/Thread.py"/>
-        <source>THREAD_RUNNING_SIMULATION</source>
+        <source>RUN_SIMULATION_THREAD_RUNNING_SIMULATION</source>
         <translation>Running simulation...</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_EXTRACTING_INFORMATION</source>
+        <translation>Extracting relevant output info...</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_OPENING_OUTPUT_FOLDER</source>
+        <translation>Opening simulation output folder...</translation>
+    </message>
+    <message>
+        <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/RunSimulationThread.py"/>
+        <source>RUN_SIMULATION_THREAD_RETURNING</source>
+        <translation>Returning...</translation>
     </message>
     <message>
         <location filename="../../FirstOrderFemPyCode/Framework/Command/SimulationContainer/ViewProvider.py"/>
