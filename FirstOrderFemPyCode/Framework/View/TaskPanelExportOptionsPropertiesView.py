@@ -77,3 +77,14 @@ class TaskPanelExportOptionsPropertiesView(TaskPanelExportOptionsPropertiesViewI
 
     def getActualView(self) -> Any:
         return self.form
+
+    def __enableDisableView(self: 'TaskPanelExportOptionsPropertiesView', enabled: bool) -> None:
+        self.form.inputRenderOption.setEnabled(enabled)
+        self.form.inputPlotLibType.setEnabled(enabled)
+        self.form.inputPointsPerDirection.setEnabled(enabled)
+
+    def disableView(self: 'TaskPanelExportOptionsPropertiesView') -> None:
+        self.__enableDisableView(False)
+        
+    def enableView(self: 'TaskPanelExportOptionsPropertiesView') -> None:
+        self.__enableDisableView(True)

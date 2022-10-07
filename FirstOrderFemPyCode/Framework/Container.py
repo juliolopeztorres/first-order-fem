@@ -14,6 +14,7 @@ from typing import Any, Callable, Dict, List, Optional
 # Services and use cases
 from FirstOrderFemPyCode.Framework.Service.UiLoaderService import UiLoaderService
 from FirstOrderFemPyCode.Framework.Service.UiLoaderServiceInterface import UiLoaderServiceInterface
+from FirstOrderFemPyCode.Data.DataRepository import DataRepository
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
 from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationUseCase import RunSimulationUseCase
 
@@ -21,22 +22,25 @@ from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationUseCase import
 from FirstOrderFemPyCode.Framework.View.TaskPanelPrescribedNodeGroupPropertiesView import TaskPanelPrescribedNodeGroupPropertiesView
 from FirstOrderFemPyCode.Framework.View.TaskPanelExportOptionsPropertiesView import TaskPanelExportOptionsPropertiesView
 from FirstOrderFemPyCode.Framework.View.TaskPanelSimulationContainerPropertiesView import TaskPanelSimulationContainerPropertiesView
+from FirstOrderFemPyCode.Framework.View.ProgressBarView import ProgressBarView
 from FirstOrderFemPyCode.Framework.View.ViewInterface import ViewInterface
 
 # Initialization of services and use cases
-extractSimulationResultsUseCase = ExtractSimulationResultsUseCase()
+dataRepository = DataRepository()
 
 @unique
 class Service(Enum):
     UI_LOADER_SERVICE = auto()
+    DATA_REPOSITORY = auto()
     RUN_SIMULATION_USE_CASE = auto()
     EXTRACT_SIMULATION_RESULTS_USE_CASE = auto()
 
 
 dictionaryServices = {
     Service.UI_LOADER_SERVICE: UiLoaderService(),
-    Service.EXTRACT_SIMULATION_RESULTS_USE_CASE: extractSimulationResultsUseCase,
-    Service.RUN_SIMULATION_USE_CASE: RunSimulationUseCase(extractSimulationResultsUseCase),
+    Service.DATA_REPOSITORY: dataRepository,
+    Service.EXTRACT_SIMULATION_RESULTS_USE_CASE: ExtractSimulationResultsUseCase(dataRepository),
+    Service.RUN_SIMULATION_USE_CASE: RunSimulationUseCase(dataRepository),
 }
 
 
@@ -45,6 +49,8 @@ class View(Enum):
     TASK_PANEL_PRESCRIBED_NODE_GROUP_PROPERTIES_VIEW = auto()
     TASK_PANEL_EXPORT_OPTIONS_PROPERTIES_VIEW = auto()
     TASK_PANEL_SIMULATION_CONTAINER_PROPERTIES_VIEW = auto()
+
+    PROGRESS_BAR_VIEW = auto()
 
 
 # Fist Any -> ViewInterface.Callback or children, Second Any -> Data Object (Optional), Third Any -> List of childs (Optional)
@@ -66,6 +72,8 @@ dictionaryViews: Dict[View, CreateViewCallableType] = {
     View.TASK_PANEL_PRESCRIBED_NODE_GROUP_PROPERTIES_VIEW: CreateCallable(TaskPanelPrescribedNodeGroupPropertiesView),
     View.TASK_PANEL_EXPORT_OPTIONS_PROPERTIES_VIEW: CreateCallable(TaskPanelExportOptionsPropertiesView),
     View.TASK_PANEL_SIMULATION_CONTAINER_PROPERTIES_VIEW: CreateCallable(TaskPanelSimulationContainerPropertiesView),
+    
+    View.PROGRESS_BAR_VIEW: CreateCallable(ProgressBarView),
 }
 
 

@@ -1,24 +1,20 @@
-from typing import Dict, Optional
-from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
+from typing import Any, Dict
 from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 from FirstOrderFemPyCode.Domain.Model.Simulation import Simulation
+from FirstOrderFemPyCode.Domain.RunSimulationUseCase.RunSimulationRepositoryInterface import RunSimulationRepositoryInterface
 
 class RunSimulationUseCase:
-    __extractSimulationResultsUseCase: ExtractSimulationResultsUseCase
+    __repository: RunSimulationRepositoryInterface
     
-    def __init__(self: 'RunSimulationUseCase', extractSimulationResultsUseCase: ExtractSimulationResultsUseCase) -> None:
-        self.__extractSimulationResultsUseCase = extractSimulationResultsUseCase
+    def __init__(self: 'RunSimulationUseCase', repository: RunSimulationRepositoryInterface) -> None:
+        self.__repository = repository
     
-    def run(self: 'RunSimulationUseCase', simulationDescription: SimulationDescription) -> Optional[Dict[int, float]]:
+    def run(self: 'RunSimulationUseCase', simulationDescription: SimulationDescription) -> Simulation:
         mesh = simulationDescription.mesh
 
-        simulation = Simulation(mesh, simulationDescription.prescribedNodes, simulationDescription.path)
-        simulation.run()
-        # print('Solution')
-        print(f'Energy:{simulation.energy}J\n')
-        # solutionStr = 'V\n'.join([str(solutioni) for solutioni in simulation.solution]) + 'V\n'
-        # print(f'Free Nodes:\n{solutionStr}')
+        simulation = Simulation(mesh, simulationDescription.prescribedNodes)
+        simulation.solve()
 
-        self.__extractSimulationResultsUseCase.extract(simulationDescription, simulation.nodeVoltages)
+        self.__repository.writeNodeVoltages(simulationDescription.path, 'solution.json', simulation.nodeVoltages)
 
-        return simulation.nodeVoltages
+        return simulation

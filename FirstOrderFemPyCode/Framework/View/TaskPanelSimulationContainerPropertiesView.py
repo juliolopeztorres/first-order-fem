@@ -1,4 +1,6 @@
 from typing import Any, List, Optional
+from PySide import QtGui
+
 from FirstOrderFemPyCode.Framework.View.TaskPanelExportOptionsPropertiesViewInterface import TaskPanelExportOptionsPropertiesViewInterface
 from FirstOrderFemPyCode.Framework.View.TaskPanelSimulationContainerPropertiesViewInterface import TaskPanelSimulationContainerPropertiesViewInterface
 from FirstOrderFemPyCode.Framework.Service.UiLoaderServiceInterface import UiLoaderServiceInterface
@@ -39,6 +41,11 @@ class TaskPanelSimulationContainerPropertiesView(TaskPanelSimulationContainerPro
         self.form.btnRunScenario.clicked.connect(self.__onBtnRunScenarioClicked)
         self.form.btnRunExport.clicked.connect(self.__onBtnRunExportClicked)
 
+        self.form.textReport.verticalScrollBar().rangeChanged.connect(self.__resizeScroll)
+
+    def __resizeScroll(self, min, maxi):
+        self.form.textReport.verticalScrollBar().setValue(maxi)
+
     def __onBtnRunScenarioClicked(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
         self.__callback.onBtnRunScenarioClicked()
         
@@ -54,5 +61,26 @@ class TaskPanelSimulationContainerPropertiesView(TaskPanelSimulationContainerPro
     def closing(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
         self.__callback.onClose()
 
-    def getExportOptionsView(self) -> Any:
+    def getExportOptionsView(self: 'TaskPanelSimulationContainerPropertiesView') -> Any:
         return self.__exportOptionsView
+
+    def setText(self: 'TaskPanelSimulationContainerPropertiesView', text: str) -> None:
+        self.form.textReport.setPlainText(text)
+        self.form.textReport.moveCursor(QtGui.QTextCursor.End)
+
+    def appendText(self: 'TaskPanelSimulationContainerPropertiesView', text: str) -> None:
+        self.form.textReport.insertPlainText(text)
+
+    def resetText(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
+        self.form.textReport.clear()
+
+    def __enableDisableView(self: 'TaskPanelSimulationContainerPropertiesView', enabled: bool) -> None:
+        self.form.btnRunScenario.setEnabled(enabled)
+        self.form.btnRunExport.setEnabled(enabled)
+        self.form.textReport.setEnabled(enabled)
+
+    def disableView(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
+        self.__enableDisableView(False)
+        
+    def enableView(self: 'TaskPanelSimulationContainerPropertiesView') -> None:
+        self.__enableDisableView(True)

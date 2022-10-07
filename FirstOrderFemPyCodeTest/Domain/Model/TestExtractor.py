@@ -1,20 +1,28 @@
+from FirstOrderFemPyCode.Data.DataRepository import DataRepository
+from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
 from FirstOrderFemPyCodeTest.TestAbstractSimulation import TestAbstractSimulation
 from FirstOrderFemPyCode.Domain.Model.Extractor import Extractor
 from FirstOrderFemPyCodeTest.MockCapacitorSimulation.capacitor import frontierElementsForCharge
 
-# TODO: Check Framework layer usage
-import FirstOrderFemPyCode.Framework.Util as Util
-
 class TestExtractor(TestAbstractSimulation):
     def testExtractCenterElementsPlotInfoAndChargeForPlainPlatesCapacitor(self) -> None:
-        extractor = Extractor(TestExtractor.PATH, self._mesh, self._nodeVoltages)
-        extractor.extractPlotInfo(plot=Extractor.Plot.ELEMENT_CENTER)
+        extractor = Extractor(self._mesh, self._nodeVoltages)
+        info = extractor.extractPlotInfo(plot=Extractor.Plot.ELEMENT_CENTER)
+        extractedInfo = extractor.getFrontierElementsValues(frontierElementsForCharge)
 
-        self.assertEquals(
-            4.4270938896091334e-11, 
-            extractor.extractChargeOnFrontier('1V', frontierElementsForCharge)
-        )
+        self.assertEquals(4.4270938896091334e-11, sum([values['charge'] for values in extractedInfo['frontierElementsValues']]))
         
+        # TODO: I/O could be tested separately
+        repository = DataRepository()
+        simulationDescription = SimulationDescription()
+        simulationDescription.mesh = self._mesh
+        simulationDescription.path = TestExtractor.PATH
+        
+        repository.setSimulationInformation(simulationDescription, self._nodeVoltages)
+        
+        repository.saveInfoToFile(info)
+        repository.saveChargeInfoToFile({'1V': extractedInfo})
+
         pairs = [
             (
                 {'filename': 'plot-info.json', 'exceptionMessage': "Could not retrieve plot-info file"}, 

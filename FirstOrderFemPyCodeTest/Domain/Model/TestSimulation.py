@@ -1,13 +1,14 @@
+from FirstOrderFemPyCode.Data.DataRepository import DataRepository
 from FirstOrderFemPyCode.Domain.Model.Simulation import Simulation
 from FirstOrderFemPyCodeTest.TestAbstractSimulation import TestAbstractSimulation
 from FirstOrderFemPyCodeTest.MockCapacitorSimulation.capacitor import prescribedNodes
 
 class TestSimulation(TestAbstractSimulation):
     def testPlainPlatesCapacitor(self) -> None:       
-        simulation = Simulation(self._mesh, prescribedNodes, TestSimulation.PATH)
+        simulation = Simulation(self._mesh, prescribedNodes)#, TestSimulation.PATH)
         
-        simulation.run()
-        
+        simulation.solve()
+               
         self.assertEquals(2.2135469609968867e-11, simulation.energy)
         self.assertListEqual(
             [
@@ -28,6 +29,8 @@ class TestSimulation(TestAbstractSimulation):
         )
         
         # TODO: I/O could be tested separately
+        DataRepository().writeNodeVoltages(TestSimulation.PATH, 'solution.json', simulation.nodeVoltages)
+
         self.assertEquals(
             self._readFile(
                 self._getOutputFilePath('solution.json'),
