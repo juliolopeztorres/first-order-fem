@@ -1,5 +1,8 @@
 import os
 from FirstOrderFemPyCode.Domain.ExtractSimulationResultsUseCase.ExtractSimulationResultsUseCase import ExtractSimulationResultsUseCase
+from FirstOrderFemPyCode.Domain.Model.SimulationDescription import SimulationDescription
+from FirstOrderFemPyCode.Framework.Command.SimulationContainer.Thread import Thread, ThreadOutput
+from FirstOrderFemPyCode.Framework.View.ProgressBarViewInterface import ProgressBarViewInterface
 import FreeCAD
 
 if FreeCAD.GuiUp:
@@ -24,7 +27,8 @@ from pathlib import Path
 class ViewProvider(
     ViewProviderInterface, 
     TaskPanelSimulationContainerPropertiesViewInterface.Callback,
-    TaskPanelExportOptionsPropertiesCallback
+    TaskPanelExportOptionsPropertiesCallback,
+    ProgressBarViewInterface.CallbackInterface
     ):
     __viewObject: ViewObject
     __view: Optional[TaskPanelSimulationContainerPropertiesViewInterface] = None
@@ -36,6 +40,9 @@ class ViewProvider(
     __exportOptionsDataObject: Optional[ExportOptionsViewObject.ExportOptionsDataContainer] = None
     
     __lastSolution: Optional[Dict[int, float]] = None
+
+    __progressBar: Optional[ProgressBarViewInterface] = None
+    thread: Thread = Thread()
 
     def __init__(self, vobj: ViewObject):
         vobj.Proxy = self
@@ -92,6 +99,11 @@ class ViewProvider(
         self.__viewObject = vobj
         self.__runSimulationUseCase = Container.getService(Service.RUN_SIMULATION_USE_CASE)
         self.__extractSimulationResultsUseCase = Container.getService(Service.EXTRACT_SIMULATION_RESULTS_USE_CASE)
+
+        self.thread.signals.error.connect(self.threadError)
+        self.thread.signals.finished.connect(self.threadFinished)
+        self.thread.signals.status.connect(self.threadStatus)
+        self.thread.signals.update.connect(self.updateProgress)
 
     def doubleClicked(self, vobj: ViewObject) -> bool:
         doc = FreeCADGui.getDocument(vobj.Object.Document)
@@ -152,13 +164,71 @@ class ViewProvider(
         pass
 
     def onBtnRunScenarioClicked(self) -> Any:
-        simulationDescription = SimulationDescriptionMapper.map(
-            self.__viewObject.Object, 
-            Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
+        self.__progressBar: ProgressBarViewInterface = Container.getView(
+            View.PROGRESS_BAR_VIEW, 
+            self
         )
         
-        self.__cleanAndCreateSimulationFolder(simulationDescription.path)
-        simulationOutput = self.__runSimulationUseCase.run(simulationDescription)
+        if self.__progressBar:
+            self.__progressBar.show()
+            
+            
+        self.thread.runSimulationUseCase = self.__runSimulationUseCase
+        self.thread.object = self.__viewObject.Object
+        self.thread.start()
+        
+        # TODO: Disable UI
+
+    def onBtnRunExportClicked(self) -> Any:
+        if not self.__view:
+            return
+
+        chargeInfo = self.__extractSimulationResultsUseCase.extract(
+            SimulationDescriptionMapper.map(
+                self.__viewObject.Object, 
+                Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
+            ), 
+            self.__lastSolution
+        )
+
+        self.__view.resetText()
+        self.__showChargeInfo(chargeInfo)
+
+    def onInputChanged(self, input: str, value: Union[RenderOptionViewLabel, MatPlotLibTypeViewLabel, int]) -> None:
+        TaskPanelExportOptionsPropertiesCallback.onInputChanged(self, input, value)
+        self.__saveExportOptionsModel()
+
+    def threadStatus(self, msg) -> None:
+        print(msg)
+        if self.__progressBar:
+            self.__progressBar.showText(msg)
+
+    def threadError(self, msg) -> None:
+        print(msg)
+        if self.__progressBar:
+            self.__progressBar.showText(msg)
+            
+        # TODO: Enable UI
+
+    def threadFinished(self, status: bool, threadOutput: ThreadOutput) -> None:
+        self.thread.terminate()
+          
+        # TODO: Enable UI
+        
+        if not status:
+            if self.__progressBar:
+                self.__progressBar.resetText()
+                self.__progressBar.closing()
+                self.__progressBar = None
+
+            return
+
+        self.threadStatus('Opening simulation output folder...')
+        self.updateProgress(50)
+
+        simulationOutput = threadOutput.simulationOutput
+        simulationDescription: SimulationDescription = simulationOutput['simulationDescription']
+    
         self.__lastSolution = simulationOutput['nodeVoltages']
         
         Util.openFileManager(simulationDescription.path)
@@ -170,23 +240,18 @@ class ViewProvider(
         energyText = FreeCAD.Qt.translate("SimulationContainer", "ENERGY_OUTPUT")
         self.__view.setText(f'{energyText}:{simulationOutput["energy"]}J\n\n')
 
-        self.__showChargeInfo(simulationOutput['chargeInfo'])
+        self.threadStatus('Extracting relevant output info...')
+        self.updateProgress(60)
 
-    def onBtnRunExportClicked(self) -> Any:
-        chargeInfo = self.__extractSimulationResultsUseCase.extract(
-            SimulationDescriptionMapper.map(
-                self.__viewObject.Object, 
-                Util.getSimulationOutputFolderPath(FreeCAD.ActiveDocument.FileName)
-            ), 
-            self.__lastSolution
-        )
-        
-        if not self.__view:
-            return
+        chargeInfo = self.__extractSimulationResultsUseCase.extract(simulationDescription, self.__lastSolution)
 
-        self.__view.resetText()
         self.__showChargeInfo(chargeInfo)
+        
+        if self.__progressBar:
+            self.__progressBar.resetText()
+            self.__progressBar.closing()
+            self.__progressBar = None
 
-    def onInputChanged(self, input: str, value: Union[RenderOptionViewLabel, MatPlotLibTypeViewLabel, int]) -> None:
-        TaskPanelExportOptionsPropertiesCallback.onInputChanged(self, input, value)
-        self.__saveExportOptionsModel()
+    def updateProgress(self, progress: int) -> None:
+        if self.__progressBar:
+            self.__progressBar.setProgress(progress)
