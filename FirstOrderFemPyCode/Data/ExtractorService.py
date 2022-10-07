@@ -123,10 +123,9 @@ class ExtractorService(AbstractFemModel):
 
         return plotInfo
 
-    def getFrontierElementsValues(self: 'ExtractorService', offsetName: str, frontierElements: List[int]) -> List[Any]:
-        normalsGroup = self.__getCleanedGroup(f'normals_{offsetName}')
-        
+    def getFrontierElementsValues(self: 'ExtractorService', offsetName: str, frontierElements: List[int]) -> List[Any]:       
         frontierElementsValues = []
+        lines: List[Any] = []
         for frontierElementIndex in frontierElements:
             coefficients = self.__linearCoefficients[frontierElementIndex]
             
@@ -171,8 +170,11 @@ class ExtractorService(AbstractFemModel):
             line.ViewObject.ArrowType = u"Arrow"
             line.ViewObject.ArrowSize = '0.02 mm'
             
-            normalsGroup.addObject(line)
-            
+            lines.append(line)
+
+        normalsGroup = self.__getCleanedGroup(f'normals_{offsetName}')
+        normalsGroup.addObjects(lines)
+
         FreeCAD.ActiveDocument.recompute()
             
         return frontierElementsValues
