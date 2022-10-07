@@ -32,6 +32,17 @@
     </message>
 </context>
 <context>
+    <name>progressBarForm</name>
+    <message>
+        <location filename="../ui/ProgressBar.ui"/>
+        <source>TITLE</source>
+    </message>
+    <message>
+        <location filename="../ui/ProgressBar.ui"/>
+        <source>TEXT</source>
+    </message>
+</context>
+<context>
     <name>simulationContainerPropertiesForm</name>
     <message>
         <location filename="../ui/TaskPanelSimulationContainerProperties.ui"/>
