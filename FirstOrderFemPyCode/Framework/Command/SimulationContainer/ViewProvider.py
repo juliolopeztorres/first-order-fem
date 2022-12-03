@@ -47,8 +47,8 @@ class ViewProvider(
     __lastSolution: Optional[Dict[int, float]] = None
 
     __progressBar: Optional[ProgressBarViewInterface] = None
-    __runSimulationThread: RunSimulationThread = RunSimulationThread()
-    __runExtractionThread: RunExtractionThread = RunExtractionThread()
+    __runSimulationThread: RunSimulationThread
+    __runExtractionThread: RunExtractionThread
 
     def __init__(self, vobj: ViewObject):
         vobj.Proxy = self
@@ -137,19 +137,20 @@ class ViewProvider(
         self.__extractSimulationResultsUseCase = Container.getService(Service.EXTRACT_SIMULATION_RESULTS_USE_CASE)
         self.__dataRepository = Container.getService(Service.DATA_REPOSITORY)
 
-        self.__runSimulationThread.signals.error.connect(self.threadError)
-        self.__runSimulationThread.signals.finished.connect(self.onRunSimulationThreadFinished)
-        self.__runSimulationThread.signals.status.connect(self.threadStatus)
+        self.__runSimulationThread = RunSimulationThread()
+        self.__runSimulationThread.signals.error.connect(self.threadError)        
+        self.__runSimulationThread.signals.finished.connect(self.onRunSimulationThreadFinished)        
+        self.__runSimulationThread.signals.status.connect(self.threadStatus)        
         self.__runSimulationThread.signals.update.connect(self.updateProgress)
 
         self.__runSimulationThread.runSimulationUseCase = self.__runSimulationUseCase
         self.__runSimulationThread.extractSimulationResultsUseCase = self.__extractSimulationResultsUseCase
-        
-        self.__runExtractionThread.signals.error.connect(self.threadError)
-        self.__runExtractionThread.signals.finished.connect(self.onRunExtractionThreadFinished)
-        self.__runExtractionThread.signals.status.connect(self.threadStatus)
-        self.__runExtractionThread.signals.update.connect(self.updateProgress)
-        
+
+        self.__runExtractionThread = RunExtractionThread()
+        self.__runExtractionThread.signals.error.connect(self.threadError)        
+        self.__runExtractionThread.signals.finished.connect(self.onRunExtractionThreadFinished)        
+        self.__runExtractionThread.signals.status.connect(self.threadStatus)        
+        self.__runExtractionThread.signals.update.connect(self.updateProgress)        
         self.__runExtractionThread.extractSimulationResultsUseCase = self.__extractSimulationResultsUseCase
 
     def doubleClicked(self, vobj: ViewObject) -> bool:
@@ -281,7 +282,7 @@ class ViewProvider(
         if self.__view and self.__exportOptionsView:
             self.__view.enableView()
             self.__exportOptionsView.enableView()
-        
+
         if not status:
             self.__hideProgressBar()
 
@@ -292,7 +293,7 @@ class ViewProvider(
         
         if not self.__view:
             return
-        
+
         self.__view.resetText()
         energyText = FreeCAD.Qt.translate("SimulationContainer", "ENERGY_OUTPUT")
         self.__view.setText(f'{energyText}:{simulationOutput["energy"]}J\n\n')

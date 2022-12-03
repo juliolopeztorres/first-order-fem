@@ -27,10 +27,14 @@ class Signals(QObject):
 
 
 class RunSimulationThread(QThread):
-    signals: Signals = Signals()
+    signals: Signals
     runSimulationUseCase: RunSimulationUseCase
     extractSimulationResultsUseCase: ExtractSimulationResultsUseCase
     object: ViewObject.SimulationContainerDataContainer
+
+    def __init__(self, parent = None):
+        QThread.__init__(self, parent)
+        self.signals = Signals()
 
     def __cleanAndCreateSimulationFolder(self, path: str) -> None:
         Util.removeFolder(path)
@@ -56,12 +60,10 @@ class RunSimulationThread(QThread):
         simulation = self.runSimulationUseCase.run(simulationDescription)
 
         self.updateStatus(50, FreeCAD.Qt.translate("SimulationContainer", "RUN_SIMULATION_THREAD_EXTRACTING_INFORMATION"))
-        # self.updateStatus(50, 'Extracting relevant output info...')
 
         extractedInfo = self.extractSimulationResultsUseCase.extract(simulationDescription, simulation.nodeVoltages)
         
         self.updateStatus(60, FreeCAD.Qt.translate("SimulationContainer", "RUN_SIMULATION_THREAD_OPENING_OUTPUT_FOLDER"))
-        # self.updateStatus(60, 'Opening simulation output folder...')
 
         Util.openFileManager(simulationDescription.path)
 
