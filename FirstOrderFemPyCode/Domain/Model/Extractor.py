@@ -42,7 +42,7 @@ class Extractor(AbstractFemModel):
         return {
                 'point': [x, y], 
                 'voltage': self._getVoltage([x, y], elementCoefficients),
-                'E_mag': self._getElectricFieldMagnitude(elementCoefficients) # V/mm
+                'E_mag': self._getElectricFieldMagnitude(elementCoefficients) * 1e3 # Pass E_vect from V/mm to V/m
             }
 
     def __getCartesianGridValues(self: 'Extractor', pointsPerDirection: int = 25) -> List[Any]:
@@ -60,7 +60,7 @@ class Extractor(AbstractFemModel):
                         {
                             'point': [x, y], 
                             'voltage': 0.0,
-                            'E_mag': 0.0 # V/mm
+                            'E_mag': 0.0 # V/m
                         }
                     )
                     
@@ -92,7 +92,7 @@ class Extractor(AbstractFemModel):
             results.append(
                 {
                     'element': element.Index + 1,
-                    'E_vector': (-elementCoefficients[1], -elementCoefficients[2])
+                    'E_vector': (-elementCoefficients[1] * 1e3, -elementCoefficients[2] * 1e3) # Pass E_vect from V/mm to V/m
                 }
             )
 
@@ -140,8 +140,8 @@ class Extractor(AbstractFemModel):
                 raise Exception("Could not calculate normal vector for element " + str(frontierElementIndex))
                 
             # 3.- Calculate dot operation with E_vector
-            EVect = FreeCAD.Vector([-coefficients[1], -coefficients[2], vect[2]])
-            chargeDensity = (EPSILON_0 * EVect * 1e3).dot(normalVect) # Pass E_vect from V/mm to V/m
+            EVect = FreeCAD.Vector([-coefficients[1], -coefficients[2], vect[2]]) * 1e3 # Pass E_vect from V/mm to V/m
+            chargeDensity = (EPSILON_0 * EVect).dot(normalVect) 
             
             frontierElementsValues.append({
                 'element': frontierElementIndex,
