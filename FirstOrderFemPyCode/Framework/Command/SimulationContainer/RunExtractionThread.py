@@ -26,10 +26,14 @@ class Signals(QObject):
 
 
 class RunExtractionThread(QThread):
-    signals: Signals = Signals()
+    signals: Signals
     extractSimulationResultsUseCase: ExtractSimulationResultsUseCase
     nodeVoltages: Optional[Dict[int, float]]
     object: ViewObject.SimulationContainerDataContainer
+
+    def __init__(self, parent = None):
+        QThread.__init__(self, parent)
+        self.signals = Signals()
 
     def __updateProgression(self, progress: int) -> None:
         self.signals.update.emit(progress)
@@ -43,7 +47,6 @@ class RunExtractionThread(QThread):
         )
 
         self.updateStatus(50, FreeCAD.Qt.translate("SimulationContainer", "RUN_EXTRACTION_THREAD_EXTRACTING_INFO"))
-        # self.updateStatus(50, 'Extracting relevant output info...')
 
         return {
             'simulationDescription': simulationDescription,
