@@ -7,10 +7,10 @@ FreeCADMinimumVersion=0.19.24291
 description=UI Layer to perform simple 2D first order Finite Elements Methods simulations
 about=User interface layer to help users to define simple scenarios to solve Laplace's equation using
       Finite Elements Methods in first order aproximation
-version=0.1.0
-; tracker=https://github.com/juliolopeztorres/first-order-fem/issues
-; repository=https://github.com/juliolopeztorres/first-order-fem
-; license=LGPL
+version=0.1.1
+tracker=https://github.com/juliolopeztorres/first-order-fem/issues
+repository=https://github.com/juliolopeztorres/first-order-fem
+license=LGPL-3
 icon="assets/icons/logo.svg"
 
 [dependencies]
